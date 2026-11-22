@@ -221,3 +221,12 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# --- project ---
+*.json
+!contracts/*.json
+profiles.yml
+dbt/target/
+dbt/dbt_packages/
+dbt/logs/
+logs/
