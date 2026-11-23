@@ -1,0 +1,46 @@
+version: 2
+
+models:
+  - name: stg_orders
+    description: Latest snapshot of orders, one row per order.
+    columns:
+      - name: order_id
+        description: Primary key.
+        tests:
+          - unique
+          - not_null
+      - name: status
+        tests:
+          - accepted_values:
+              values: ['Processing', 'Shipped', 'Complete', 'Cancelled', 'Returned']
+
+  - name: stg_order_items
+    description: Latest snapshot of order items, one row per item.
+    columns:
+      - name: order_item_id
+        description: Primary key (renamed from id).
+        tests:
+          - unique
+          - not_null
+      - name: status
+        tests:
+          - accepted_values:
+              values: ['Processing', 'Shipped', 'Complete', 'Cancelled', 'Returned']
+
+  - name: stg_users
+    description: Latest snapshot of users, one row per user.
+    columns:
+      - name: user_id
+        description: Primary key (renamed from id).
+        tests:
+          - unique
+          - not_null
+
+  - name: stg_products
+    description: Latest snapshot of products, one row per product.
+    columns:
+      - name: product_id
+        description: Primary key (renamed from id).
+        tests:
+          - unique
+          - not_null
