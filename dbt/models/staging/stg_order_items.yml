@@ -1,0 +1,15 @@
+version: 2
+
+models:
+  - name: stg_order_items
+    description: Latest snapshot of order items, one row per item. Future-dated items are filtered out.
+    columns:
+      - name: order_item_id
+        description: Primary key (renamed from id).
+        tests:
+          - unique
+          - not_null
+      - name: status
+        tests:
+          - accepted_values:
+              values: ['Processing', 'Shipped', 'Complete', 'Cancelled', 'Returned']

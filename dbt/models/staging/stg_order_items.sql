@@ -20,3 +20,4 @@ select
     cast(returned_at as timestamp)    as returned_at,
     _ingested_at
 from source
+where cast(created_at as timestamp) <= current_timestamp()

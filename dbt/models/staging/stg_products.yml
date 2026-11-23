@@ -1,0 +1,11 @@
+version: 2
+
+models:
+  - name: stg_products
+    description: Latest snapshot of products, one row per product.
+    columns:
+      - name: product_id
+        description: Primary key (renamed from id).
+        tests:
+          - unique
+          - not_null
