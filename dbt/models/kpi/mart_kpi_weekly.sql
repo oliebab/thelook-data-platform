@@ -11,7 +11,7 @@ with sessions as (
 bounds as (
     select
         date_trunc(date_add(min(session_date), interval 6 day), isoweek) as first_full_week,  -- first Monday with a full week of data
-        date_trunc(current_date(), isoweek)                              as current_week     -- excluded: not complete
+        date_trunc(date_add(max(session_date), interval 1 day), isoweek) as first_incomplete_week  -- week counts only once its Sunday is loaded
     from sessions
 ),
 
@@ -26,7 +26,7 @@ behaviour as (
     from sessions
     cross join bounds
     where session_date >= bounds.first_full_week
-      and session_date <  bounds.current_week
+      and session_date <  bounds.first_incomplete_week
     group by week_start
 ),
 
