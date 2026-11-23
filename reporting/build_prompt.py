@@ -1,33 +1,39 @@
-
+import argparse
 import json
+import pprint
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
 
-TEMPLATE_PATH = ROOT / "reporting/prompts/weekly_review_v1.md"
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+TEMPLATE_PATH = PROJECT_ROOT / "reporting" / "prompts" / "weekly_review_v1.md"
 
 
-def build_prompt(json_path: str) -> str:
-    template = TEMPLATE_PATH.read_text(encoding="utf-8")
-
-    with open(json_path, encoding="utf-8") as file:
-        data = json.load(file)
-
-    pretty_json = json.dumps(
+def build_prompt(data, template):
+    formatted_json = pprint.pformat(
         data,
-        indent=2,
-        ensure_ascii=False,
+        indent=4,
+        width=80,
+        sort_dicts=False,
     )
 
-    return template.replace("{{WEEKLY_JSON}}", pretty_json)
+    return template.replace("{{JSON}}", formatted_json)
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("json_file", nargs="?")
+    args = parser.parse_args()
+
+    if args.json_file:
+        with open(args.json_file, encoding="utf-8") as f:
+            data = json.load(f)
+    else:
+        data = json.load(sys.stdin)
+
+    template = TEMPLATE_PATH.read_text(encoding="utf-8")
+    print(build_prompt(data, template))
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 2:
-        raise SystemExit(
-            "Usage: python reporting/build_prompt.py "
-            "contracts/kpi_weekly.example.json"
-        )
-
-    print(build_prompt(sys.argv[1]))
+    main()

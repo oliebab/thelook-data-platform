@@ -1,7 +1,3 @@
-<<<<<<< HEAD
-=======
-
->>>>>>> ba4b408678918e27d146bd421b2970d9bdd04c67
 from reporting.llm import generate
 
 
