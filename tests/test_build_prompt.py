@@ -1,7 +1,7 @@
 
 import pytest
 
-from reporting.run_example import build_prompt
+from reporting.build_prompt import build_prompt, TEMPLATE_PATH
 
 
 def test_build_prompt_replaces_json_placeholder():
