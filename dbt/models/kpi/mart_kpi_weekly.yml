@@ -1,0 +1,14 @@
+version: 2
+
+models:
+  - name: mart_kpi_weekly
+    description: "Weekly KPI mart read by the Gemini review and Streamlit. One row per complete ISO week; see contracts/kpi_weekly.md for units and formulas. _year_ago is NULL before 2026-10-05 (backfill starts 2025-10-01)."
+    columns:
+      - name: week_start
+        description: "Monday of the ISO week."
+        data_tests: [unique, not_null]
+      - name: week_end
+        description: "Sunday of the ISO week."
+        data_tests: [not_null]
+      - name: sessions_current
+        data_tests: [not_null]

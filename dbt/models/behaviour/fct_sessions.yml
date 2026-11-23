@@ -1,0 +1,33 @@
+version: 2
+
+models:
+  - name: fct_sessions
+    description: "One row per web session, built from stg_events (future events excluded). Session attributes come from the first event by sequence_number."
+    columns:
+      - name: session_id
+        data_tests: [unique, not_null]
+      - name: session_start
+        data_tests: [not_null]
+      - name: session_date
+        description: "Date of the first event. Multi-day sessions count once, on their start date."
+        data_tests: [not_null]
+      - name: n_events
+        data_tests: [not_null]
+      - name: traffic_source
+        data_tests: [not_null]
+      - name: landing_event_type
+        description: "Event type of the first event in the session."
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ['home', 'department', 'product']
+              config:
+                where: "not is_truncated"
+      - name: reached_product
+        description: "TRUE if the session has at least one product view (funnel step 1)."
+      - name: reached_cart
+        description: "TRUE if the session has at least one add-to-cart (funnel step 2)."
+      - name: reached_purchase
+        description: "TRUE if the session has a purchase (funnel step 3)."
+      - name: is_truncated
+        description: "TRUE if the first loaded event is not sequence_number 1, i.e. the session started before the backfill window. Exclude from funnel KPIs."

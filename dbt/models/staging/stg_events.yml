@@ -1,0 +1,21 @@
+version: 2
+
+models:
+  - name: stg_events
+    description: One row per web event, deduplicated on event_id. PII location fields dropped.
+    columns:
+      - name: event_id
+        data_tests: [unique, not_null]
+      - name: session_id
+        data_tests: [not_null]
+      - name: sequence_number
+        data_tests: [not_null]
+      - name: created_at
+        data_tests: [not_null]
+      - name: event_type
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ['home', 'department', 'product', 'cart', 'purchase', 'cancel']
+      - name: is_future
+        description: "Guard flag: TRUE if created_at is after now. The public dataset contains future-dated events; downstream models filter is_future = false."
