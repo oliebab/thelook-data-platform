@@ -1,15 +1,43 @@
-Welcome to your new dbt project!
+# dbt — TheLook Data Platform
 
-### Using the starter project
+Transforms the raw TheLook tables (`raw_thelook`) into clean, tested models in BigQuery.
 
-Try running the following commands:
-- dbt run
-- dbt test
+**Owners:** Gabriel and Olivier
 
+## How to run
 
-### Resources:
-- Learn more about dbt [in the docs](https://docs.getdbt.com/docs/introduction)
-- Check out [Discourse](https://discourse.getdbt.com/) for commonly asked questions and answers
-- Join the [chat](https://community.getdbt.com/) on Slack for live discussions and support
-- Find [dbt events](https://events.getdbt.com) near you
-- Check out [the blog](https://blog.getdbt.com/) for the latest news on dbt's development and best practices
+Run every command from this folder:
+
+```bash
+cd ~/code/thelook-data-platform/dbt
+poetry run dbt debug                 # check your profile and the BigQuery connection
+poetry run dbt build -s <selector>   # run + test, e.g. -s staging, -s stg_orders, -s core
+poetry run dbt source freshness      # check how recent the raw loads are
+```
+
+Each person needs a profile in `~/.dbt/profiles.yml` (outside the repo, never committed), with the profile name `thelook`, `method: oauth`, project `thelook-dp-2611`, location `US`.
+
+## Targets
+
+| Target | Dataset | Who uses it |
+|---|---|---|
+| `dev` (default) | `dbt_<yourname>` (e.g. `dbt_gabriel`) | everyone, for development |
+| `prod` | `analytics` | only Airflow (`--target prod`) |
+
+Never run `--target prod` by hand.
+
+## Folder layout
+
+```
+dbt/
+├── dbt_project.yml
+├── models/
+│   ├── staging/     sources.yml, stg_*.sql, schema.yml — views   (Gabriel; stg_events: Olivier)
+│   ├── core/        fct_*, dim_*, mart_category_weekly — tables   (Gabriel)
+│   ├── behaviour/   fct_sessions, fct_funnel_daily — tables       (Olivier)
+│   └── kpi/         mart_kpi_weekly — tables                      (Olivier)
+├── tests/           custom tests written as SQL
+└── analyses/        exploration queries (Olivier)
+```
+
+Staging models are views (cheap, always fresh); everything else is materialised as a table. This is set per folder in `dbt_project.yml`.
