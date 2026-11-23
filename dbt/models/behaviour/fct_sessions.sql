@@ -21,7 +21,7 @@ sessions as (
         logical_or(event_type = 'product')                     as reached_product,
         logical_or(event_type = 'cart')                        as reached_cart,
         logical_or(event_type = 'purchase')                    as reached_purchase,
-        min(sequence_number) > 1                               as is_truncated  -- started before the backfill window
+        min(sequence_number) > 1                               as is_truncated  -- started before the backfill window; sessions still open on the last loaded day complete on the next daily rebuild
     from events
     group by session_id
 )
