@@ -1,0 +1,25 @@
+[project]
+name = "thelook-data-platform"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "Olivier Babiard",email = "79102309+oliebab@users.noreply.github.com"}
+]
+readme = "README.md"
+requires-python = ">=3.10,<3.13"
+dependencies = [
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry]
+package-mode = false
+
+[dependency-groups]
+dev = [
+    "pytest (>=9.2.0,<10.0.0)",
+    "ruff (>=0.17.6,<0.18.0)"
+]
