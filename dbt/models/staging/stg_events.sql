@@ -22,7 +22,6 @@ renamed as (
         browser,
         uri,
         created_at > current_timestamp()  as is_future,
-        dt                                as loaded_dt,
         _ingested_at
     from deduplicated
 )
