@@ -1,6 +1,5 @@
 import argparse
 import json
-import pprint
 import sys
 from pathlib import Path
 
@@ -10,6 +9,9 @@ TEMPLATE_PATH = PROJECT_ROOT / "reporting" / "prompts" / "weekly_review_v1.md"
 
 
 def build_prompt(data, template):
+    if "{{JSON}}" not in template:
+        raise ValueError("template has no {{JSON}} placeholder")
+        
     formatted_json = json.dumps(
         data,
         indent=2,
