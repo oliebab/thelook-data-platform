@@ -6,8 +6,18 @@ authors = [
     {name = "Olivier Babiard",email = "79102309+oliebab@users.noreply.github.com"}
 ]
 readme = "README.md"
-requires-python = ">=3.10,<3.13"
+requires-python = ">=3.12,<3.13"
 dependencies = [
+    "google-cloud-bigquery (>=3.47.0,<4.0.0)",
+    "google-cloud-storage (>=3.17.1,<4.0.0)",
+    "pyarrow (>=26.0.1,<27.0.0)",
+    "pandas (>=3.1.1,<4.0.0)",
+    "db-dtypes (>=1.9.0,<2.0.0)",
+    "python-dotenv (>=1.2.4,<2.0.0)",
+    "google-genai (>=1.66,<3)",
+    "streamlit (>=1.67.0,<2.0.0)",
+    "plotly (>=7.1.0,<8.0.0)",
+    "dbt-bigquery (>=1.12.4,<2.0.0)"
 ]
 
 
