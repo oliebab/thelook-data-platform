@@ -18,4 +18,4 @@ models:
               arguments:
                 values: ['home', 'department', 'product', 'cart', 'purchase', 'cancel']
       - name: is_future
-        description: Guard flag: TRUE if created_at is after now. The public dataset contains future-dated events; downstream models filter is_future = false.
+        description: "Guard flag: TRUE if created_at is after now. The public dataset contains future-dated events; downstream models filter is_future = false."
