@@ -10,12 +10,11 @@ TEMPLATE_PATH = PROJECT_ROOT / "reporting" / "prompts" / "weekly_review_v1.md"
 
 
 def build_prompt(data, template):
-    formatted_json = pprint.pformat(
+    formatted_json = json.dumps(
         data,
-        indent=4,
-        width=80,
-        sort_dicts=False,
-    )
+        indent=2,
+        ensure_ascii=False,
+)
 
     return template.replace("{{JSON}}", formatted_json)
 
