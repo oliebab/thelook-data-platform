@@ -1,0 +1,21 @@
+    version: 2
+
+models:
+  - name: fct_funnel_daily
+    description: "Daily session funnel (product, cart, purchase) by traffic source, from fct_sessions. Counts are sessions that reached each step. Rates are row-level: sum the counts and recompute when aggregating."
+    columns:
+      - name: funnel_key
+        description: "session_date|traffic_source, the grain of the table."
+        data_tests: [unique, not_null]
+      - name: session_date
+        data_tests: [not_null]
+      - name: traffic_source
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['Email', 'Adwords', 'Facebook', 'YouTube', 'Organic']
+      - name: sessions
+        data_tests: [not_null]
+      - name: session_conversion_pct
+        description: "Purchase sessions / all sessions, in % (0-100, 1 decimal)."
