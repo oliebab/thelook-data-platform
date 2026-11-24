@@ -1,22 +1,26 @@
 import argparse
 import json
+import os
 import sys
 from pathlib import Path
 
-
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
-TEMPLATE_PATH = PROJECT_ROOT / "reporting" / "prompts" / "weekly_review_v1.md"
+PROMPTS_DIR = PROJECT_ROOT / "reporting" / "prompts"
+# The template file name is the prompt version stored with each review.
+# Default is v2; run an older one with e.g. PROMPT_VERSION=weekly_review_v1.
+PROMPT_VERSION = os.getenv("PROMPT_VERSION", "weekly_review_v2")
+TEMPLATE_PATH = PROMPTS_DIR / f"{PROMPT_VERSION}.md"
 
 
 def build_prompt(data, template):
     if "{{JSON}}" not in template:
         raise ValueError("template has no {{JSON}} placeholder")
-        
+
     formatted_json = json.dumps(
         data,
         indent=2,
         ensure_ascii=False,
-)
+    )
 
     return template.replace("{{JSON}}", formatted_json)
 
