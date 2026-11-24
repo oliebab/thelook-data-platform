@@ -12,7 +12,8 @@ def check_numbers(output_md, kpi_json):
     - Rounded representations (0, 1, and 2 decimal places).
     - Absolute values of negative KPI changes.
     - Numbers appearing in period/date fields.
-    - Single-digit integers (e.g. 'top 3') are ignored.
+    - Single-digit integers without a percentage sign
+      (e.g. 'top 3') are ignored.
     """
 
     def normalise(value):
@@ -86,8 +87,13 @@ def check_numbers(output_md, kpi_json):
         except ValueError:
             continue
 
-        # Ignore single-digit integers (e.g. "top 3")
-        if abs(number) < 10 and number.is_integer():
+        # Ignore single-digit integers without a percentage sign
+        # (e.g. "top 3"), but never ignore "7%".
+        if (
+            "%" not in match
+            and abs(number) < 10
+            and number.is_integer()
+        ):
             continue
 
         if number not in expanded_allowed:

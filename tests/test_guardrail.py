@@ -91,3 +91,33 @@ def test_period_dates_are_allowed():
     output_md = "Revenue was 1234.5 for 2025-01-01 to 2025-12-31."
 
     assert check_numbers(output_md, kpi_json) == []
+
+
+def test_flags_invented_single_digit_percentage():
+    kpi_json = {
+        "revenue": 1234.5
+    }
+
+    output_md = "Orders up 7%."
+
+    assert check_numbers(output_md, kpi_json) == ["7"]
+
+
+def test_flags_invented_single_digit_percentage_with_verb():
+    kpi_json = {
+        "revenue": 1234.5
+    }
+
+    output_md = "Revenue rose 5%."
+
+    assert check_numbers(output_md, kpi_json) == ["5"]
+
+
+def test_top_three_without_percentage_is_ignored():
+    kpi_json = {
+        "revenue": 1234.5
+    }
+
+    output_md = "The top 3 products performed best."
+
+    assert check_numbers(output_md, kpi_json) == []
