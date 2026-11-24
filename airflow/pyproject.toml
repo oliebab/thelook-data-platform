@@ -1,0 +1,26 @@
+[project]
+name = "thelook-airflow"
+version = "0.1.0"
+description = ""
+authors = []
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+  "apache-airflow-providers-google (>=22.9.0,<23.0.0)",
+  "apache-airflow-providers-postgres (>=7.1.2,<8.0.0)",
+  "apache-airflow (>=3.4.0,<4.0.0)",
+  "google-cloud-storage (>=3.17.1,<4.0.0)",
+  "pyarrow (>=26.0.1,<27.0.0)",
+  "polars[gcp] (>=2.1.0,<3.0.0)",
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry]
+package-mode = false
+
+[dependency-groups]
+dev = ["pytest (>=9.2.0,<10.0.0)", "ruff (>=0.17.6,<0.18.0)"]

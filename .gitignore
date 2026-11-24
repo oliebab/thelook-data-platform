@@ -229,4 +229,10 @@ profiles.yml
 dbt/target/
 dbt/dbt_packages/
 dbt/logs/
-logs/
+
+# Airflow
+airflow/.env*
+!airflow/.env*.example
+airflow/database
+airflow/data
+airflow/logs
