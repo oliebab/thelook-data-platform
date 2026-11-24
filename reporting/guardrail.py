@@ -1,6 +1,6 @@
-import re
+
 import json
-from datetime import date, datetime
+import re
 
 
 def check_numbers(output_md, kpi_json):
@@ -8,10 +8,11 @@ def check_numbers(output_md, kpi_json):
     Return numbers in output_md that are not present in kpi_json.
 
     Allowed:
-    - All numeric values found in the KPI JSON.
-    - Their rounded representations (0, 1, and 2 decimal places).
-    - Numbers appearing in period dates.
-    - Single-digit numbers used in phrases such as 'top 3'.
+    - Numeric values found in the KPI JSON.
+    - Rounded representations (0, 1, and 2 decimal places).
+    - Absolute values of negative KPI changes.
+    - Numbers appearing in period/date fields.
+    - Single-digit integers (e.g. 'top 3') are ignored.
     """
 
     def normalise(value):
@@ -35,8 +36,11 @@ def check_numbers(output_md, kpi_json):
     def collect_json_numbers(obj):
         if isinstance(obj, dict):
             for key, value in obj.items():
-                # Capture period/date values separately
-                if any(term in key.lower() for term in ("date", "period")):
+                # Capture period/date values
+                if any(
+                    term in key.lower()
+                    for term in ("date", "period")
+                ):
                     if isinstance(value, str):
                         for number in extract_numbers(value):
                             try:
@@ -62,15 +66,18 @@ def check_numbers(output_md, kpi_json):
 
     collect_json_numbers(kpi_json)
 
-    # Add rounded representations of all allowed numbers
+    # Expand allowed numbers to include rounded and absolute values
     expanded_allowed = set()
 
     for number in allowed_numbers:
         expanded_allowed.add(number)
+        expanded_allowed.add(abs(number))
+
         for decimals in (0, 1, 2):
             expanded_allowed.add(round(number, decimals))
+            expanded_allowed.add(round(abs(number), decimals))
 
-    # Extract numbers from the review
+    # Check numbers in the review
     unexpected_numbers = []
 
     for match in extract_numbers(output_md):
@@ -79,13 +86,13 @@ def check_numbers(output_md, kpi_json):
         except ValueError:
             continue
 
-        # Ignore single-digit numbers (e.g. "top 3")
+        # Ignore single-digit integers (e.g. "top 3")
         if abs(number) < 10 and number.is_integer():
             continue
 
         if number not in expanded_allowed:
-            unexpected_numbers.append(str(normalise(match)).rstrip("0").rstrip(".")
-                         if "." in str(normalise(match))
-                         else str(int(normalise(match))))
+            unexpected_numbers.append(
+                str(int(number)) if number.is_integer() else str(number)
+            )
 
     return unexpected_numbers

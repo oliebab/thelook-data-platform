@@ -49,3 +49,45 @@ def test_rounded_values_are_accepted(quoted_value):
     output_md = f"Growth was {quoted_value}%."
 
     assert check_numbers(output_md, kpi_json) == []
+
+
+def test_negative_change_written_as_fell_is_accepted():
+    kpi_json = {
+        "wow_change_pts": -2.7
+    }
+
+    output_md = "Return rate fell 2.7 pts."
+
+    assert check_numbers(output_md, kpi_json) == []
+
+
+def test_negative_percentage_change_written_as_fell_is_accepted():
+    kpi_json = {
+        "wow_change_pct": -4.6
+    }
+
+    output_md = "Net revenue fell 4.6%."
+
+    assert check_numbers(output_md, kpi_json) == []
+
+
+def test_top_three_is_ignored():
+    kpi_json = {
+        "revenue": 1234.5
+    }
+
+    output_md = "The top 3 products generated the most revenue."
+
+    assert check_numbers(output_md, kpi_json) == []
+
+
+def test_period_dates_are_allowed():
+    kpi_json = {
+        "revenue": 1234.5,
+        "period_start": "2025-01-01",
+        "period_end": "2025-12-31"
+    }
+
+    output_md = "Revenue was 1234.5 for 2025-01-01 to 2025-12-31."
+
+    assert check_numbers(output_md, kpi_json) == []
