@@ -2,7 +2,7 @@
 import json
 from pathlib import Path
 
-from reporting import build_prompt, TEMPLATE_PATH
+from reporting.build_prompt import TEMPLATE_PATH, build_prompt
 from reporting.llm import generate
 
 
