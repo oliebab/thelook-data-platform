@@ -1,5 +1,5 @@
 # Streamlit app for TheLook Data Platform.
-# Built by the `streamlit` service in airflow/docker-compose.yaml (build context: ../app).
+# Built by the `streamlit` service in airflow/docker-compose.yml (build context: ../app).
 # On the VM, the BigQuery client picks up the VM's service account automatically:
 # no credentials file is needed.
 FROM python:3.12-slim
@@ -11,12 +11,13 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
+# Pinned to the versions in poetry.lock, so the container runs what was tested.
 RUN pip install \
-        streamlit \
-        plotly \
-        pandas \
-        db-dtypes \
-        google-cloud-bigquery
+        streamlit==1.67.0 \
+        plotly==7.1.0 \
+        pandas==3.1.1 \
+        db-dtypes==1.9.0 \
+        google-cloud-bigquery==3.47.0
 
 # The build context is app/, so this copies Home.py, data.py and pages/.
 COPY . .

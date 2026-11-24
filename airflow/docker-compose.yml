@@ -115,8 +115,8 @@ services:
     stdin_open: true
 
   streamlit:
+    container_name: streamlit
     build: ../app
     ports:
       - "127.0.0.1:8501:8501"
     restart: unless-stopped
-  

@@ -119,13 +119,14 @@ def get_top_categories(week: dt.date, n: int = 5) -> pd.DataFrame | None:
 
 @st.cache_data(ttl=3600)
 def get_review(week: dt.date) -> pd.DataFrame | None:
-    """Latest LLM review generated for the selected week (a re-run adds a row)."""
+    """Latest LLM review for the selected week that passed the guardrail (a re-run adds a row)."""
     return _query(
         f"""
         select *
         from {REPORTS_TABLE}
         where period_type = 'week'
           and period_start = @week
+          and guardrail_passed
         order by generated_at desc
         limit 1
         """,
