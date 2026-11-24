@@ -19,8 +19,6 @@ from config import (
 with DAG(
     dag_id="extract_to_GCS",
     description="Export of all TheLook tables from BigQuery to GCS as Parquet",
-    start_date=datetime(2026, 11, 22),
-    catchup=True,
     schedule="@daily",
     tags=["bigquery", "gcs", "parquet"],
     default_args=DEFAULT_ARGS,

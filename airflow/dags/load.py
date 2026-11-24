@@ -21,8 +21,6 @@ from config import (
 with DAG(
     dag_id="GCS_to_bigquery",
     description=("Extract GCS Parquet and load them into BigQuery"),
-    start_date=datetime(2026, 11, 22),
-    catchup=True,
     schedule="@daily",
     tags=["bigquery", "gcs", "parquet", "raw"],
     default_args=DEFAULT_ARGS,
