@@ -1,9 +1,11 @@
-"""Review page: the LLM's written review of the week.
+"""Review page: the LLM's written review of the selected week.
 
-Shows the review text, a caption with model / prompt version / generation time,
-and the input JSON the model was given. Placeholder until the reports table exists.
+Reads reports.llm_business_review (PR #14): the review text (output_md), a
+caption with model / prompt version / generation time, and the input JSON the
+model was given. Placeholder until the table exists or has a row for the week.
 """
 
+import datetime as dt
 import json
 
 import pandas as pd
@@ -13,24 +15,29 @@ import data
 
 st.set_page_config(page_title="Review · TheLook Weekly", page_icon="📝", layout="wide")
 
-st.title("Weekly review")
+# Selected week from Home; fall back to the latest week if the user landed here first.
+if "week" not in st.session_state:
+    st.session_state["week"] = data.get_weeks()[0]
+week: dt.date = st.session_state["week"]
 
-# Column names in the reports table. 
-TEXT_COL = "review_text"
+st.title("Weekly review")
+st.caption(f"Week of {week:%d %b %Y} · change the week on the Home page")
+
+# Column names in reports.llm_business_review. 
+TEXT_COL = "output_md"
 MODEL_COL = "model"
 PROMPT_COL = "prompt_version"
 GENERATED_COL = "generated_at"
 INPUT_COL = "input_json"
 
-review = data.get_latest_review()
+review = data.get_review(week)
 
 if review is None:
-    st.info("The `reports` table doesn't exist yet: no review to show.")
-    st.markdown("_The review of the week will appear here._")
+    st.info("The review table doesn't exist yet: no review to show.")
     st.stop()
 
 if review.empty:
-    st.warning("The `reports` table is empty: no review generated yet.")
+    st.warning("No review generated for this week yet.")
     st.stop()
 
 row = review.iloc[0]
@@ -38,7 +45,9 @@ row = review.iloc[0]
 
 def get(col):
     value = row.get(col)
-    return None if value is None or (not isinstance(value, (dict, list)) and pd.isna(value)) else value
+    if value is None or (not isinstance(value, (dict, list)) and pd.isna(value)):
+        return None
+    return value
 
 
 st.markdown(get(TEXT_COL) or "_Review text missing._")
@@ -55,12 +64,10 @@ with st.expander("Input data sent to the model"):
     payload = get(INPUT_COL)
     if payload is None:
         st.write("No input JSON stored.")
+    elif isinstance(payload, str):
+        try:
+            st.json(json.loads(payload))
+        except json.JSONDecodeError:
+            st.code(payload)
     else:
-        if isinstance(payload, str):
-            try:
-                payload = json.loads(payload)
-            except json.JSONDecodeError:
-                st.code(payload)
-                payload = None
-        if payload is not None:
-            st.json(payload)
+        st.json(payload)
