@@ -4,9 +4,8 @@ import sys
 from pathlib import Path
 
 from reporting.build_prompt import TEMPLATE_PATH, build_prompt
-from reporting.llm import generate
 from reporting.guardrail import check_numbers
-
+from reporting.llm import generate
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 DATA_PATH = PROJECT_ROOT / "contracts" / "kpi_weekly.example.json"
