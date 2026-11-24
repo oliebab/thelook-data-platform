@@ -1,0 +1,23 @@
+version: 2
+
+models:
+  - name: stg_orders
+    description: Latest snapshot of orders, one row per order. Future-dated orders are filtered out.
+    columns:
+      - name: order_id
+        description: Primary key.
+        data_tests:
+          - unique
+          - not_null
+      - name: user_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_users')
+                field: user_id
+      - name: status
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ['Processing', 'Shipped', 'Complete', 'Cancelled', 'Returned']

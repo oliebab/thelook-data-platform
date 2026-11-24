@@ -1,0 +1,38 @@
+version: 2
+
+models:
+  - name: stg_order_items
+    description: Latest snapshot of order items, one row per item. Future-dated items are kept (they belong to past orders); core filters them through the order.
+    columns:
+      - name: order_item_id
+        description: Primary key (renamed from id).
+        data_tests:
+          - unique
+          - not_null
+      - name: order_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_orders')
+                field: order_id
+              config:
+                where: "created_at <= current_timestamp()"
+      - name: product_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_products')
+                field: product_id
+      - name: status
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ['Processing', 'Shipped', 'Complete', 'Cancelled', 'Returned']
+      - name: sale_price
+        data_tests:
+          - not_null
+      - name: created_at
+        data_tests:
+          - not_null

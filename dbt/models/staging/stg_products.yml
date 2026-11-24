@@ -1,0 +1,15 @@
+version: 2
+
+models:
+  - name: stg_products
+    description: Latest snapshot of products, one row per product.
+    columns:
+      - name: product_id
+        description: Primary key (renamed from id).
+        data_tests:
+          - unique
+          - not_null
+      - name: cost
+        description: Unit cost, used by gross_margin_pct.
+        data_tests:
+          - not_null
