@@ -1,14 +1,16 @@
-import json
+
 import os
 from datetime import date, datetime, timezone
 
 from google.cloud import bigquery
 
+
 PROJECT_ID = os.environ.get("GCP_PROJECT", "thelook-dp-2611")
 DATASET = "reports"
 TABLE = "llm_business_review"
 TABLE_ID = f"{PROJECT_ID}.{DATASET}.{TABLE}"
-LOCATION = os.environ.get("BQ_LOCATION", "US")  # must match your other datasets
+LOCATION = os.environ.get("BQ_LOCATION", "US")
+
 
 SCHEMA = [
     bigquery.SchemaField("period_type", "STRING", mode="REQUIRED"),
@@ -24,16 +26,54 @@ SCHEMA = [
 
 
 def _client() -> bigquery.Client:
-    return bigquery.Client(project=PROJECT_ID, location=LOCATION)
+    """Create a BigQuery client."""
+    return bigquery.Client(
+        project=PROJECT_ID,
+        location=LOCATION,
+    )
 
 
-def ensure_table(client: bigquery.Client | None = None) -> None:
-    """Create the dataset and table if missing. Safe to call on every run."""
+def ensure_table(
+    client: bigquery.Client | None = None,
+) -> None:
+    """
+    Create the dataset and table if missing.
+
+    Safe to call on every run.
+    New tables use daily partitioning and clustering.
+    """
     client = client or _client()
-    ds = bigquery.Dataset(f"{PROJECT_ID}.{DATASET}")
-    ds.location = LOCATION
-    client.create_dataset(ds, exists_ok=True)
-    client.create_table(bigquery.Table(TABLE_ID, schema=SCHEMA), exists_ok=True)
+
+    dataset = bigquery.Dataset(
+        f"{PROJECT_ID}.{DATASET}"
+    )
+    dataset.location = LOCATION
+
+    client.create_dataset(
+        dataset,
+        exists_ok=True,
+    )
+
+    table = bigquery.Table(
+        TABLE_ID,
+        schema=SCHEMA,
+    )
+
+    table.time_partitioning = bigquery.TimePartitioning(
+        type_=bigquery.TimePartitioningType.DAY,
+        field="generated_at",
+    )
+
+    table.clustering_fields = [
+        "period_type",
+        "period_start",
+        "prompt_version",
+    ]
+
+    client.create_table(
+        table,
+        exists_ok=True,
+    )
 
 
 def store(
@@ -46,26 +86,19 @@ def store(
     input_json: dict,
     output_md: str,
     guardrail_passed: bool,
-    replace: bool = True,
     client: bigquery.Client | None = None,
 ) -> None:
-    """Write one row with a load job (not a streaming insert)."""
-    client = client or _client()
-    ensure_table(client)
+    """
+    Append one business review record to BigQuery.
 
-    if replace:
-        # A load job's rows can be deleted immediately, so a re-run for the
-        # same period replaces the old row instead of duplicating it.
-        client.query(
-            f"DELETE FROM `{TABLE_ID}` "
-            "WHERE period_type = @pt AND period_start = @ps",
-            job_config=bigquery.QueryJobConfig(
-                query_parameters=[
-                    bigquery.ScalarQueryParameter("pt", "STRING", period_type),
-                    bigquery.ScalarQueryParameter("ps", "DATE", period_start),
-                ]
-            ),
-        ).result()
+    Historical runs are preserved, allowing comparisons
+    between different models and prompt versions.
+
+    Uses a BigQuery load job rather than streaming inserts.
+    """
+    client = client or _client()
+
+    ensure_table(client)
 
     row = {
         "period_type": period_type,
@@ -73,17 +106,81 @@ def store(
         "period_end": period_end.isoformat(),
         "model": model,
         "prompt_version": prompt_version,
-        "input_json": json.dumps(input_json, ensure_ascii=False),
+
+        # Pass the Python dictionary directly.
+        # BigQuery handles JSON serialization.
+        "input_json": input_json,
+
         "output_md": output_md,
         "guardrail_passed": guardrail_passed,
-        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "generated_at": datetime.now(
+            timezone.utc
+        ).isoformat(),
     }
+
     job = client.load_table_from_json(
         [row],
         TABLE_ID,
         job_config=bigquery.LoadJobConfig(
             schema=SCHEMA,
-            write_disposition=bigquery.WriteDisposition.WRITE_APPEND,
+            write_disposition=(
+                bigquery.WriteDisposition.WRITE_APPEND
+            ),
         ),
     )
-    job.result()  # raises if the load fails
+
+    # Wait for completion and propagate errors.
+    job.result()
+
+
+def get_latest_reviews_query() -> str:
+    """
+    Return a query selecting the latest review
+    for each reporting period.
+    """
+    return f"""
+        SELECT *
+        FROM `{TABLE_ID}`
+        QUALIFY ROW_NUMBER() OVER (
+            PARTITION BY period_type, period_start
+            ORDER BY generated_at DESC
+        ) = 1
+    """
+
+
+def get_review_history_query() -> str:
+    """
+    Return a query retrieving all historical runs.
+    """
+    return f"""
+        SELECT *
+        FROM `{TABLE_ID}`
+        ORDER BY period_start DESC, generated_at DESC
+    """
+
+
+def get_prompt_comparison_query(
+    period_start: date,
+) -> str:
+    """
+    Return a query comparing prompt versions
+    for a specific reporting period.
+    """
+    return f"""
+        SELECT
+            period_type,
+            period_start,
+            period_end,
+            model,
+            prompt_version,
+            guardrail_passed,
+            generated_at,
+            JSON_VALUE(
+                input_json,
+                '$.kpis.net_revenue.current'
+            ) AS net_revenue,
+            output_md
+        FROM `{TABLE_ID}`
+        WHERE period_start = DATE '{period_start.isoformat()}'
+        ORDER BY generated_at DESC
+    """
