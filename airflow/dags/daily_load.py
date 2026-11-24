@@ -1,14 +1,13 @@
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 from airflow import DAG
-from airflow.providers.google.cloud.operators.bigquery import (
-    BigQueryCreateEmptyDatasetOperator,
-)
 from airflow.providers.google.cloud.transfers.gcs_to_bigquery import (
     GCSToBigQueryOperator,
 )
 from airflow.providers.standard.sensors.external_task import ExternalTaskSensor
 from airflow.providers.standard.operators.python import PythonOperator
+
+import pendulum
 
 from config import (
     BQ_LOCATION,
@@ -18,6 +17,7 @@ from config import (
     GCS_BUCKET,
     GCP_PROJECT,
     TABLES,
+    TABLES_JOIN,
 )
 
 from load import enrich_parquet_files
@@ -28,7 +28,7 @@ with DAG(
     start_date=CUTOFF_DATE + timedelta(days=1),
     catchup=True,
     schedule="@daily",
-    tags=["bigquery", "gcs", "parquet", "raw", "enrich", "daily"],
+    tags=["bigquery", "gcs", "parquet", "raw", "enrich", "historical"],
     default_args=DEFAULT_ARGS,
 ) as dag:
     wait_for_extraction_task = ExternalTaskSensor(
@@ -43,9 +43,19 @@ with DAG(
         mode="reschedule",
     )
 
-    load_tasks = []
-    enrich_tasks = []
     for table in TABLES:
+        wait_for_historical_task = ExternalTaskSensor(
+            task_id=f"wait_for_historical_{table}",
+            external_dag_id="historical_GCS_to_bigquery",
+            external_task_id=f"load_{table}_to_bigquery",
+            execution_date_fn=lambda _: CUTOFF_DATE,
+            allowed_states=["success"],
+            failed_states=["failed"],
+            mode="reschedule",
+            poke_interval=60,
+            timeout=6000,
+        )
+
         enrich_task = PythonOperator(
             task_id=f"enrich_{table}",
             python_callable=enrich_parquet_files,
@@ -68,13 +78,12 @@ with DAG(
             source_format="PARQUET",
             autodetect=True,
             create_disposition="CREATE_NEVER",
-            write_disposition="WRITE_APPEND",
+            write_disposition="WRITE_APPEND"
+            if table not in TABLES_JOIN
+            else "WRITE_TRUNCATE",
             project_id=GCP_PROJECT,
             location=BQ_LOCATION,
             gcp_conn_id="google_cloud_default",
         )
 
-        enrich_tasks.append(enrich_task)
-        load_tasks.append(load_task)
-
-        wait_for_extraction_task >> enrich_task >> load_task
+        wait_for_extraction_task >> wait_for_historical_task >> enrich_task >> load_task

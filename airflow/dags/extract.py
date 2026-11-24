@@ -14,10 +14,7 @@ from config import (
     SOURCE_LOCATION,
     SOURCE_PROJECT,
     TABLES,
-    TABLES_JOIN,
 )
-
-ALL_TABLES = TABLES + TABLES_JOIN
 
 with DAG(
     dag_id="extract_to_GCS",
@@ -29,7 +26,7 @@ with DAG(
     default_args=DEFAULT_ARGS,
 ) as dag:
     extract_tasks = []
-    for table in ALL_TABLES:
+    for table in TABLES:
         extract_tasks.append(
             BigQueryToGCSOperator(
                 task_id=f"extract_{table}_to_GCS",

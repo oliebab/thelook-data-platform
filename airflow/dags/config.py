@@ -1,4 +1,5 @@
 import os
+import pendulum
 
 from datetime import datetime, timedelta
 
@@ -10,14 +11,14 @@ SOURCE_DATASET = os.environ["SOURCE_DATASET"]
 SOURCE_LOCATION = os.environ["SOURCE_LOCATION"]
 DESTINATION_DATASET = os.environ["DESTINATION_DATASET"]
 
-CUTOFF_DATE = datetime(2026, 11, 22)
+CUTOFF_DATE = pendulum.datetime(2026, 11, 22, tz="UTC")
 
 TABLES_JOIN = [
     "products",
     "distribution_centers",
 ]
 
-TABLES = ["users", "orders", "order_items", "inventory_items", "events"]
+TABLES = ["users", "orders", "order_items", "inventory_items", "events", *TABLES_JOIN]
 
 DEFAULT_ARGS = {
     "depends_on_past": False,

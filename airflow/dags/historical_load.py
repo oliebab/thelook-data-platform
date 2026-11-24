@@ -1,5 +1,3 @@
-from datetime import datetime
-
 from airflow import DAG
 from airflow.providers.google.cloud.operators.bigquery import (
     BigQueryCreateEmptyDatasetOperator,
@@ -20,10 +18,7 @@ from config import (
     GCS_BUCKET,
     GCP_PROJECT,
     TABLES,
-    TABLES_JOIN,
 )
-
-ALL_TABLES = TABLES + TABLES_JOIN
 
 with DAG(
     dag_id="historical_GCS_to_bigquery",
@@ -54,9 +49,7 @@ with DAG(
         gcp_conn_id="google_cloud_default",
     )
 
-    load_tasks = []
-    enrich_tasks = []
-    for table in ALL_TABLES:
+    for table in TABLES:
         enrich_task = PythonOperator(
             task_id=f"enrich_{table}",
             python_callable=enrich_parquet_files,
@@ -84,8 +77,5 @@ with DAG(
             location=BQ_LOCATION,
             gcp_conn_id="google_cloud_default",
         )
-
-        enrich_tasks.append(enrich_task)
-        load_tasks.append(load_task)
 
         wait_for_extraction_task >> enrich_task >> load_task
