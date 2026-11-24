@@ -1,0 +1,10 @@
+version: 2
+
+models:
+  - name: dim_customers
+    description: "One row per user, with signup date and non-cancelled purchase history. Drives signups (by signup_week)."
+    columns:
+      - name: user_id
+        data_tests: [unique, not_null]
+      - name: signup_week
+        data_tests: [not_null]
