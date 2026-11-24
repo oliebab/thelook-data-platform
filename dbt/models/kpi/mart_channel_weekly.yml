@@ -1,0 +1,11 @@
+version: 2
+
+models:
+  - name: mart_channel_weekly
+    description: "Sessions and session conversion per traffic source per complete ISO week, with the previous week. Sums daily counts from fct_funnel_daily and recomputes rates."
+    columns:
+      - name: channel_week_key
+        description: "week_start|traffic_source, the grain of the table."
+        data_tests: [unique, not_null]
+      - name: traffic_source
+        data_tests: [not_null]
