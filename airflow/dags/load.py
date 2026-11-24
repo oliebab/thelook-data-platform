@@ -1,74 +1,72 @@
-from datetime import datetime
+from datetime import datetime, UTC
 
-from airflow import DAG
-from airflow.providers.google.cloud.operators.bigquery import (
-    BigQueryCreateEmptyDatasetOperator,
-)
-from airflow.providers.google.cloud.transfers.gcs_to_bigquery import (
-    GCSToBigQueryOperator,
-)
-from airflow.providers.standard.sensors.external_task import ExternalTaskSensor
+import polars as pl
 
-from config import (
-    BQ_LOCATION,
-    DEFAULT_ARGS,
-    # DESTINATION_DATASET,
-    GCS_BUCKET,
-    GCP_PROJECT,
-    TABLES,
-)
+from airflow.providers.google.cloud.hooks.gcs import GCSHook
+from airflow.sdk import get_current_context
 
-# TODO: Remove next definition and bring back the import from config
-DESTINATION_DATASET = "raw_thelook_landing"
+from config import TABLES_JOIN
 
-with DAG(
-    dag_id="GCS_to_bigquery",
-    description=("Extract GCS Parquet and load them into BigQuery"),
-    start_date=datetime(2026, 11, 22),
-    catchup=False,
-    schedule="@daily",
-    tags=["bigquery", "gcs", "parquet", "raw"],
-    default_args=DEFAULT_ARGS,
-) as dag:
-    wait_for_extraction_task = ExternalTaskSensor(
-        task_id="wait_for_extraction",
-        external_dag_id="extract_to_GCS",
-        external_task_id="extract_to_GCS_completed",
-        allowed_states=["success"],
-        failed_states=["failed"],
-        check_existence=True,
-        timeout=600,
-        poke_interval=15,
-        mode="reschedule",
+import logging
+
+logger = logging.getLogger(__name__)
+
+
+def enrich_parquet_files(
+    bucket: str,
+    table: str,
+    min_date: str | None,
+    max_date: str | None,
+    gcp_conn_id: str = "google_cloud_default",
+):
+    context = get_current_context()
+    ds = context["ds"]
+
+    ingestion_time = datetime.now(UTC)
+
+    source_prefix = f"raw/{table}/run_date={ds}/"
+    blob_prefix = f"staging/{table}/run_date={ds}/"
+    destination_prefix = f"gs://{bucket}/{blob_prefix}"
+
+    gcs = GCSHook(gcp_conn_id=gcp_conn_id)
+
+    source_files = gcs.list(
+        bucket_name=bucket,
+        prefix=source_prefix,
     )
 
-    create_raw_dataset_task = BigQueryCreateEmptyDatasetOperator(
-        task_id="create_raw_dataset",
-        project_id=GCP_PROJECT,
-        dataset_id=DESTINATION_DATASET,
-        location=BQ_LOCATION,
-        exists_ok=True,
-        gcp_conn_id="google_cloud_default",
-    )
+    for source_file in source_files:
+        if not source_file.endswith(".parquet"):
+            continue
 
-    load_tasks = []
-    for table in TABLES:
-        load_tasks.append(
-            GCSToBigQueryOperator(
-                task_id=f"load_{table}_to_bigquery",
-                bucket=GCS_BUCKET,
-                source_objects=[(f"raw/{table}/run_date={{{{ ds }}}}/part-*.parquet")],
-                destination_project_dataset_table=(
-                    f"{GCP_PROJECT}.{DESTINATION_DATASET}.{table}"
-                ),
-                source_format="PARQUET",
-                autodetect=True,
-                create_disposition="CREATE_IF_NEEDED",
-                write_disposition="WRITE_TRUNCATE",  # APPEND + current True / False
-                project_id=GCP_PROJECT,
-                location=BQ_LOCATION,
-                gcp_conn_id="google_cloud_default",
-            )
+        filename = source_file.split("/")[-1]
+
+        source_uri = f"gs://{bucket}/{source_file}"
+        destination_uri = destination_prefix + filename
+
+        df = pl.read_parquet(source_uri, credential_provider=pl.CredentialProviderGCP())
+
+        if table not in TABLES_JOIN:
+            logger.info(f"Len before: {len(df)}")
+            if min_date is not None:
+                logger.info(f"Min_date for {table}: {min_date}")
+                df = df.filter(pl.col("created_at") > pl.lit(min_date).str.to_date())
+
+            if max_date is not None:
+                logger.info(f"Max_date for {table}: {max_date}")
+                df = df.filter(pl.col("created_at") <= pl.lit(max_date).str.to_date())
+            logger.info(f"Len after: {len(df)}")
+
+            df = df.with_columns(pl.col("created_at").dt.date().alias("_dt"))
+
+        df = df.with_columns(
+            [
+                pl.lit(ingestion_time).alias("_ingested_at"),
+                pl.lit(source_uri).alias("_source_file"),
+            ]
         )
 
-    wait_for_extraction_task >> create_raw_dataset_task >> load_tasks
+        df.write_parquet(
+            destination_uri,
+            credential_provider=pl.CredentialProviderGCP(),
+        )

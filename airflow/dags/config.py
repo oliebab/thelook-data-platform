@@ -1,6 +1,6 @@
 import os
 
-from datetime import timedelta
+from datetime import datetime, timedelta
 
 GCP_PROJECT = os.environ["GCP_PROJECT"]
 GCS_BUCKET = os.environ["GCS_BUCKET"]
@@ -10,15 +10,14 @@ SOURCE_DATASET = os.environ["SOURCE_DATASET"]
 SOURCE_LOCATION = os.environ["SOURCE_LOCATION"]
 DESTINATION_DATASET = os.environ["DESTINATION_DATASET"]
 
-TABLES = [
-    "users",
-    "orders",
-    "order_items",
+CUTOFF_DATE = datetime(2026, 11, 22)
+
+TABLES_JOIN = [
     "products",
-    "inventory_items",
-    "events",
     "distribution_centers",
 ]
+
+TABLES = ["users", "orders", "order_items", "inventory_items", "events"]
 
 DEFAULT_ARGS = {
     "depends_on_past": False,

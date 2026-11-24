@@ -14,19 +14,22 @@ from config import (
     SOURCE_LOCATION,
     SOURCE_PROJECT,
     TABLES,
+    TABLES_JOIN,
 )
+
+ALL_TABLES = TABLES + TABLES_JOIN
 
 with DAG(
     dag_id="extract_to_GCS",
     description="Export of all TheLook tables from BigQuery to GCS as Parquet",
     start_date=datetime(2026, 11, 22),
-    catchup=False,
-    schedule="@daily",
+    catchup=True,
+    schedule="@Daily",
     tags=["bigquery", "gcs", "parquet"],
     default_args=DEFAULT_ARGS,
 ) as dag:
     extract_tasks = []
-    for table in TABLES:
+    for table in ALL_TABLES:
         extract_tasks.append(
             BigQueryToGCSOperator(
                 task_id=f"extract_{table}_to_GCS",
