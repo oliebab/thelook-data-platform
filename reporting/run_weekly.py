@@ -38,6 +38,7 @@ def run(week_start: date | None = None) -> bool:
         input_json=data,
         output_md=output_md,
         guardrail_passed=not unexpected,
+        replace=not unexpected,  # a failing review is kept for debugging but never replaces a passing one
     )
 
     print(output_md)
