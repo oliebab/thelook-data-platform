@@ -29,17 +29,6 @@ with DAG(
     tags=["bigquery", "gcs", "parquet", "raw", "enrich", "historical"],
     default_args=DEFAULT_ARGS,
 ) as dag:
-    wait_for_extraction_task = ExternalTaskSensor(
-        task_id="wait_for_extraction",
-        external_dag_id="extract_to_GCS",
-        allowed_states=["success"],
-        failed_states=["failed"],
-        check_existence=True,
-        timeout=6000,
-        poke_interval=15,
-        mode="reschedule",
-    )
-
     create_raw_dataset_task = BigQueryCreateEmptyDatasetOperator(
         task_id="create_raw_dataset",
         project_id=GCP_PROJECT,
@@ -50,6 +39,18 @@ with DAG(
     )
 
     for table in TABLES:
+        wait_for_extraction_task = ExternalTaskSensor(
+            task_id=f"wait_for_{table}_extraction",
+            external_dag_id="extract_to_GCS",
+            external_task_id=f"extract_{table}_to_GCS",
+            allowed_states=["success"],
+            failed_states=["failed"],
+            check_existence=True,
+            timeout=6000,
+            poke_interval=15,
+            mode="reschedule",
+        )
+
         enrich_task = PythonOperator(
             task_id=f"enrich_{table}",
             python_callable=enrich_parquet_files,

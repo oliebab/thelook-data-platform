@@ -18,4 +18,5 @@ RUN pip3 install --upgrade --no-cache-dir pip \
     && poetry install --only main
 
 COPY scripts scripts
+RUN chmod +x scripts/airflow-init.sh
 RUN chmod +x scripts/start-api.sh

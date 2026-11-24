@@ -7,10 +7,6 @@ from airflow.sdk import get_current_context
 
 from config import TABLES_JOIN
 
-import logging
-
-logger = logging.getLogger(__name__)
-
 
 def enrich_parquet_files(
     bucket: str,
@@ -47,15 +43,11 @@ def enrich_parquet_files(
         df = pl.read_parquet(source_uri, credential_provider=pl.CredentialProviderGCP())
 
         if table not in TABLES_JOIN:
-            logger.info(f"Len before: {len(df)}")
             if min_date is not None:
-                logger.info(f"Min_date for {table}: {min_date}")
                 df = df.filter(pl.col("created_at") > pl.lit(min_date).str.to_date())
 
             if max_date is not None:
-                logger.info(f"Max_date for {table}: {max_date}")
                 df = df.filter(pl.col("created_at") <= pl.lit(max_date).str.to_date())
-            logger.info(f"Len after: {len(df)}")
 
             df = df.with_columns(pl.col("created_at").dt.date().alias("_dt"))
 

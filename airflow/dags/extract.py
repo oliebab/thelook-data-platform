@@ -45,9 +45,3 @@ with DAG(
                 location=SOURCE_LOCATION,
             )
         )
-
-    join_extract_task = EmptyOperator(
-        task_id="extract_to_GCS_completed",
-    )
-
-    extract_tasks >> join_extract_task
