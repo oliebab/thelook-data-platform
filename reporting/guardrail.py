@@ -84,6 +84,8 @@ def check_numbers(output_md, kpi_json):
             continue
 
         if number not in expanded_allowed:
-            unexpected_numbers.append(match)
+            unexpected_numbers.append(str(normalise(match)).rstrip("0").rstrip(".")
+                         if "." in str(normalise(match))
+                         else str(int(normalise(match))))
 
     return unexpected_numbers
