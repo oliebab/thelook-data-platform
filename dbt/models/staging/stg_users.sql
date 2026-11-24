@@ -2,7 +2,7 @@ with source as (
 
     select *
     from {{ source('thelook_raw', 'users') }}
-    where dt = (select max(dt) from {{ source('thelook_raw', 'users') }})
+    where dt = {{ latest_dt('users') }}
 
 )
 

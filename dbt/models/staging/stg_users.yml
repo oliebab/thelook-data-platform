@@ -6,6 +6,6 @@ models:
     columns:
       - name: user_id
         description: Primary key (renamed from id).
-        tests:
+        data_tests:
           - unique
           - not_null

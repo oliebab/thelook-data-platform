@@ -2,7 +2,7 @@ with source as (
 
     select *
     from {{ source('thelook_raw', 'order_items') }}
-    where dt = (select max(dt) from {{ source('thelook_raw', 'order_items') }})
+    where dt = {{ latest_dt('order_items') }}
 
 )
 
@@ -20,4 +20,5 @@ select
     cast(returned_at as timestamp)    as returned_at,
     _ingested_at
 from source
+-- TheLook is synthetic and contains future-dated items: drop them, like stg_orders.
 where cast(created_at as timestamp) <= current_timestamp()
