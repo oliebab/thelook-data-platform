@@ -12,15 +12,20 @@ from airflow.providers.standard.sensors.external_task import ExternalTaskSensor
 from config import (
     BQ_LOCATION,
     DEFAULT_ARGS,
-    DESTINATION_DATASET,
+    # DESTINATION_DATASET,
     GCS_BUCKET,
     GCP_PROJECT,
     TABLES,
 )
 
+# TODO: Remove next definition and bring back the import from config
+DESTINATION_DATASET = "raw_thelook_landing"
+
 with DAG(
     dag_id="GCS_to_bigquery",
     description=("Extract GCS Parquet and load them into BigQuery"),
+    start_date=datetime(2026, 11, 22),
+    catchup=False,
     schedule="@daily",
     tags=["bigquery", "gcs", "parquet", "raw"],
     default_args=DEFAULT_ARGS,

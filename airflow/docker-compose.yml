@@ -6,7 +6,7 @@ services:
     volumes:
       - ./database/:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -d $$AIRFLOW_DB_NAME -U $$AIRFLOW_DB_USER || exit 1"]
+      test: ["CMD-SHELL", "pg_isready -d $$POSTGRES_DB -U $$POSTGRES_USER || exit 1"]
       interval: 15s
       timeout: 10s
       retries: 5
@@ -18,16 +18,14 @@ services:
     build:
       context: .
       target: airflow
-    command: poetry run scripts/entrypoint.sh
+    command: poetry run airflow db migrate
     env_file:
+      - ../.env
       - .env.airflow
       - .env.postgres
     environment:
       - AIRFLOW__CORE__EXECUTOR=LocalExecutor
       - AIRFLOW__CORE__LOAD_EXAMPLES=false
-      - GCP_PROJECT=$GCP_PROJECT
-      - GCS_BUCKET=$GCS_BUCKET
-      - BQ_LOCATION=$BQ_LOCATION
     depends_on:
       postgres:
         condition: service_healthy
@@ -52,15 +50,14 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
-    env_file: .env.airflow
+    env_file: 
+      - ../.env
+      - .env.airflow
     environment:
       - AIRFLOW__CORE__EXECUTOR=LocalExecutor
       - AIRFLOW__CORE__EXECUTION_API_SERVER_URL=http://webserver:8080/execution/
       - AIRFLOW__DEBUG__FAIL_FAST=true
       - AIRFLOW__CORE__LOAD_EXAMPLES=false
-      - GCP_PROJECT=$GCP_PROJECT
-      - GCS_BUCKET=$GCS_BUCKET
-      - BQ_LOCATION=$BQ_LOCATION
     volumes:
       - ./dags:/app/airflow/dags
       - ./data:/app/airflow/data
@@ -78,12 +75,11 @@ services:
     depends_on:
       airflow-init:
         condition: service_completed_successfully
-    env_file: .env.airflow
+    env_file: 
+      - .env.airflow
+      - ../.env
     environment:
       - AIRFLOW__CORE__LOAD_EXAMPLES=false
-      - GCP_PROJECT=$GCP_PROJECT
-      - GCS_BUCKET=$GCS_BUCKET
-      - BQ_LOCATION=$BQ_LOCATION
     volumes:
       - ./dags:/app/airflow/dags
       - ./data:/app/airflow/data
@@ -94,7 +90,7 @@ services:
     build: 
       context: .
       target: airflow
-    command: poetry run airflow api-server
+    command: poetry run scripts/start-api.sh
     restart: on-failure
     depends_on:
       airflow-init:

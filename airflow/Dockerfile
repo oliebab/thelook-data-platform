@@ -11,13 +11,11 @@ RUN apt-get update && apt-get install -y curl
 
 WORKDIR $AIRFLOW_HOME
 
-# Change to dedicated airflow pyproject
 COPY pyproject.toml poetry.lock ./ 
 
 RUN pip3 install --upgrade --no-cache-dir pip \
     && pip3 install poetry \
     && poetry install --only main
 
-# Change location ?
 COPY scripts scripts
-RUN chmod +x scripts/entrypoint.sh
+RUN chmod +x scripts/start-api.sh
