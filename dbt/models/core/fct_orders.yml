@@ -15,6 +15,7 @@ models:
                 field: user_id
       - name: status
         data_tests:
+          - not_null
           - accepted_values:
               arguments:
                 values: ['Processing', 'Shipped', 'Complete', 'Cancelled', 'Returned']
