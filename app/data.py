@@ -124,6 +124,7 @@ def get_review(week: dt.date) -> pd.DataFrame | None:
         from {REPORTS_TABLE}
         where period_type = 'week'
           and period_start = @week
+          and guardrail_passed
         order by generated_at desc
         limit 1
         """,

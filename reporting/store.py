@@ -57,11 +57,12 @@ def store(
         # same period replaces the old row instead of duplicating it.
         client.query(
             f"DELETE FROM `{TABLE_ID}` "
-            "WHERE period_type = @pt AND period_start = @ps",
+            "WHERE period_type = @pt AND period_start = @ps AND prompt_version = @pv",
             job_config=bigquery.QueryJobConfig(
                 query_parameters=[
                     bigquery.ScalarQueryParameter("pt", "STRING", period_type),
                     bigquery.ScalarQueryParameter("ps", "DATE", period_start),
+                    bigquery.ScalarQueryParameter("pv", "STRING", prompt_version),
                 ]
             ),
         ).result()
