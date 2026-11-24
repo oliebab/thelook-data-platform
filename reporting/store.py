@@ -1,4 +1,3 @@
-import json
 import os
 from datetime import date, datetime, timezone
 
@@ -73,7 +72,7 @@ def store(
         "period_end": period_end.isoformat(),
         "model": model,
         "prompt_version": prompt_version,
-        "input_json": json.dumps(input_json, ensure_ascii=False),
+        "input_json": input_json,  # pass the dict; load_table_from_json serialises it
         "output_md": output_md,
         "guardrail_passed": guardrail_passed,
         "generated_at": datetime.now(timezone.utc).isoformat(),
