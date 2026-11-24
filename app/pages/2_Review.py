@@ -23,7 +23,7 @@ week: dt.date = st.session_state["week"]
 st.title("Weekly review")
 st.caption(f"Week of {week:%d %b %Y} · change the week on the Home page")
 
-# Column names in reports.llm_business_review. 
+# Column names in reports.llm_business_review.
 TEXT_COL = "output_md"
 MODEL_COL = "model"
 PROMPT_COL = "prompt_version"

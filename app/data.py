@@ -4,7 +4,7 @@ Every BigQuery query lives here, one function per query, each cached for an hour
 Pages never talk to BigQuery directly.
 
 The dataset is read from the APP_DATASET environment variable (default: analytics).
-While developing, I'm pointing it at your my dbt dataset:
+While developing, point it at your own dbt dataset:
 
     APP_DATASET=dbt_gabriel poetry run streamlit run app/Home.py
 
@@ -26,9 +26,11 @@ from google.cloud import bigquery
 PROJECT = "thelook-dp-2611"
 DATASET = os.getenv("APP_DATASET", "analytics")
 
-# Table names.
+# Table names. Change here if the dbt models are named differently.
 KPI_TABLE = f"`{PROJECT}.{DATASET}.mart_kpi_weekly`"
 CATEGORY_TABLE = f"`{PROJECT}.{DATASET}.mart_category_weekly`"
+FUNNEL_TABLE = f"`{PROJECT}.{DATASET}.fct_funnel_daily`"
+CHANNEL_TABLE = f"`{PROJECT}.{DATASET}.mart_channel_weekly`"
 # LLM review table written by the review job (PR #14). Lives in its own dataset.
 REPORTS_TABLE = "`" + os.getenv("APP_REPORTS_TABLE", f"{PROJECT}.reports.llm_business_review") + "`"
 
@@ -126,6 +128,54 @@ def get_review(week: dt.date) -> pd.DataFrame | None:
           and period_start = @week
         order by generated_at desc
         limit 1
+        """,
+        _week_param(week),
+    )
+
+
+@st.cache_data(ttl=3600)
+def get_funnel_daily(week: dt.date) -> pd.DataFrame | None:
+    """Daily funnel rows (one per day and traffic source) for the selected week
+    and the week before it, so the page can compute week-on-week changes.
+
+    Only the session counts are read: rates are recomputed from the sums,
+    because averaging daily percentages would weight a quiet day like a busy one.
+    """
+    return _query(
+        f"""
+        select
+            session_date,
+            traffic_source,
+            sessions,
+            product_sessions,
+            cart_sessions,
+            purchase_sessions,
+            -- Sessions running past midnight only show up the next day, so the
+            -- last loaded day under-counts conversion: flag it as provisional.
+            session_date = (select max(session_date) from {FUNNEL_TABLE}) as is_provisional
+        from {FUNNEL_TABLE}
+        where session_date between date_sub(@week, interval 7 day)
+                               and date_add(@week, interval 6 day)
+        """,
+        _week_param(week),
+    )
+
+
+@st.cache_data(ttl=3600)
+def get_channels(week: dt.date) -> pd.DataFrame | None:
+    """One row per traffic source for the selected week, with sessions and
+    session conversion (0-100) for this week and the previous one."""
+    return _query(
+        f"""
+        select
+            traffic_source,
+            sessions_current,
+            sessions_previous,
+            session_conversion_rate_current,
+            session_conversion_rate_previous
+        from {CHANNEL_TABLE}
+        where {WEEK_COL} = @week
+        order by sessions_current desc
         """,
         _week_param(week),
     )
