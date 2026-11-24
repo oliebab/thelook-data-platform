@@ -1,0 +1,13 @@
+version: 2
+
+models:
+  - name: mart_category_weekly
+    description: "Net revenue per product category per complete ISO week, with the previous week and the rank within the week (1 = highest). Same weeks as mart_kpi_weekly."
+    columns:
+      - name: category_week_key
+        description: "week_start|category, the grain of the table."
+        data_tests: [unique, not_null]
+      - name: category
+        data_tests: [not_null]
+      - name: net_revenue_rank
+        data_tests: [not_null]
