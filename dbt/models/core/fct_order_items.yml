@@ -1,0 +1,21 @@
+version: 2
+
+models:
+  - name: fct_order_items
+    description: "One row per order line, from orders that passed stg_orders (future-dated orders excluded). Dates, week and status come from the order."
+    columns:
+      - name: order_item_id
+        data_tests: [unique, not_null]
+      - name: order_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('fct_orders')
+                field: order_id
+      - name: order_week
+        description: "Monday of the ISO week of the order's created_at. Revenue KPIs are bucketed on this."
+        data_tests: [not_null]
+      - name: product_cost
+        description: "Unit cost from stg_products. Not null proves every line found its product."
+        data_tests: [not_null]
