@@ -6,6 +6,8 @@ with source as (
 
 )
 
+-- No future-date filter here: an item's created_at can be up to 96h after its
+-- order's. Items follow their order in core (fct_order_items joins stg_orders).
 select
     cast(id as int64)                 as order_item_id,
     cast(order_id as int64)           as order_id,
@@ -20,5 +22,3 @@ select
     cast(returned_at as timestamp)    as returned_at,
     _ingested_at
 from source
--- TheLook is synthetic and contains future-dated items: drop them, like stg_orders.
-where cast(created_at as timestamp) <= current_timestamp()

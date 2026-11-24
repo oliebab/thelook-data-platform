@@ -2,7 +2,7 @@ version: 2
 
 models:
   - name: stg_users
-    description: Latest snapshot of users, one row per user.
+    description: Latest snapshot of users, one row per user. PII (names, e-mail, address, coordinates) is dropped.
     columns:
       - name: user_id
         description: Primary key (renamed from id).

@@ -2,7 +2,7 @@ version: 2
 
 models:
   - name: stg_order_items
-    description: Latest snapshot of order items, one row per item. Future-dated items are filtered out.
+    description: Latest snapshot of order items, one row per item. Future-dated items are kept (they belong to past orders); core filters them through the order.
     columns:
       - name: order_item_id
         description: Primary key (renamed from id).

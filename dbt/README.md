@@ -42,4 +42,4 @@ dbt/
 
 Staging models are views (cheap, always fresh); everything else is materialised as a table. This is set per folder in `dbt_project.yml`.
 
-Future-dated rows: stg_orders and stg_order_items drop them; stg_events keeps them with an is_future flag.
+Future-dated rows: stg_orders drops them; stg_order_items keeps them, and fct_order_items inner-joins stg_orders so items follow their order (revenue bucketed by the order’s created_at); stg_events keeps them with an is_future flag.
