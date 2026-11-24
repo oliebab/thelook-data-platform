@@ -16,6 +16,8 @@ models:
               arguments:
                 to: ref('stg_orders')
                 field: order_id
+              config:
+                where: "created_at <= current_timestamp()"
       - name: product_id
         data_tests:
           - not_null

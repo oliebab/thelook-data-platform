@@ -40,6 +40,6 @@ dbt/
 └── analyses/        exploration queries (Olivier)
 ```
 
-Staging models are views (cheap, always fresh); everything else is materialised as a table. This is set per folder in `dbt_project.yml`.
+Staging models are views (cheap, no storage), but latest_dt fixes the snapshot date in the view at build time: a view keeps reading the snapshot it was built on until the next dbt build. Airflow rebuilds after every load. Everything else is materialised as a table.
 
-Future-dated rows: stg_orders drops them; stg_order_items keeps them, and fct_order_items inner-joins stg_orders so items follow their order (revenue bucketed by the order’s created_at); stg_events keeps them with an is_future flag.
+Future-dated rows: stg_orders drops them; stg_order_items keeps them; (planned) fct_order_items will inner-join stg_orders so items follow their order. Until then, anything reading stg_order_items directly sees future-dated items.
