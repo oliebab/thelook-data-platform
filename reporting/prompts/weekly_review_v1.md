@@ -13,12 +13,13 @@ Use the JSON as the sole source of factual information.
 
 1. Use only numbers explicitly present in the JSON.
 2. Reproduce numbers exactly as written. Never calculate, derive, estimate, aggregate, or invent new numbers.
-3. Up to three items with highlight: true and a positive change. If none, write: "No significant change this week."
-4. Explicitly mention that recent return rates are understated because returns arrive later than the original purchases. Do not interpret recent return rates as final.
-5. Do not invent explanations for performance changes or claim causation without supporting evidence.
-6. Keep the language concise, professional, objective, and suitable for an e-commerce management team.
-7. Distinguish positive developments from risks and areas requiring attention.
-8. Keep the entire review under 250 words.
+3. If a value is null, write "not available".
+4. Include up to three items with highlight: true and a positive change under What went well.
+5. Include up to three items with highlight: true and a negative change under Things to watch.
+6. Do not invent explanations for performance changes or claim causation without supporting evidence.
+7. Keep the language concise, professional, objective, and suitable for an e-commerce management team.
+8. Distinguish positive developments from risks and areas requiring attention.
+9. Keep the entire review under 250 words.
 
 # Output format
 
