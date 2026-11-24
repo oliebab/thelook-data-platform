@@ -231,10 +231,11 @@ dbt/dbt_packages/
 dbt/logs/
 logs/
 
+example_review.md
+
 # Airflow
 airflow/.env*
 !airflow/.env*.example
 airflow/database
 airflow/data
 airflow/logs
-example_review.md
