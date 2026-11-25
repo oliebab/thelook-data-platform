@@ -80,6 +80,13 @@ services:
       - ./airflow/data:/app/airflow/data
       - ./airflow/logs:/app/airflow/logs
       - $GCP_KEY_PATH:/app/airflow/keys/gcp-service-account.json:ro
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/api/v2/monitor/health || exit 1"]
+      interval: 30s
+      timeout: 30s
+      retries: 3
+    tty: true
+    stdin_open: true
 
   webserver:
     container_name: airflow_webserver
