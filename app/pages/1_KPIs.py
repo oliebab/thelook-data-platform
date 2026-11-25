@@ -11,6 +11,9 @@ with 1 decimal, so their changes are shown in points (pts).
 import datetime as dt
 
 import pandas as pd
+import plotly.express as px
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
 import streamlit as st
 
 import data
@@ -91,24 +94,62 @@ for row in (KPIS[:3], KPIS[3:]):
 
 st.divider()
 
-# --- Charts (built on Thursday) ---------------------------------------------
+# --- Charts -----------------------------------------------------------------
 left, right = st.columns(2)
+
 with left:
     st.subheader("Net revenue and orders, last 52 weeks")
     history = data.get_kpi_history(52)
-    if history is None:
-        st.info("Placeholder: line chart once `mart_kpi_weekly` exists.")
+    if history is None or history.empty:
+        st.info("No KPI history yet.")
     else:
-        st.dataframe(
-            history[[data.WEEK_COL, "net_revenue_current", "orders_current"]],
-            use_container_width=True,
-            hide_index=True,
+        fig = make_subplots(specs=[[{"secondary_y": True}]])
+        fig.add_trace(
+            go.Scatter(
+                x=history[data.WEEK_COL],
+                y=history["net_revenue_current"],
+                name="Net revenue",
+                mode="lines",
+                hovertemplate="%{x|%d %b %Y}<br>$%{y:,.0f}<extra></extra>",
+            ),
+            secondary_y=False,
         )
+        fig.add_trace(
+            go.Scatter(
+                x=history[data.WEEK_COL],
+                y=history["orders_current"],
+                name="Orders",
+                mode="lines",
+                hovertemplate="%{x|%d %b %Y}<br>%{y:,.0f} orders<extra></extra>",
+            ),
+            secondary_y=True,
+        )
+        # Mark the selected week on the chart
+        fig.add_vline(x=week, line_dash="dot", line_color="grey")
+        fig.update_yaxes(title_text="Net revenue ($)", tickprefix="$", secondary_y=False)
+        fig.update_yaxes(title_text="Orders", showgrid=False, secondary_y=True)
+        fig.update_layout(
+            height=380,
+            margin=dict(l=0, r=0, t=10, b=0),
+            legend=dict(orientation="h", y=1.08, x=0),
+            hovermode="x unified",
+        )
+        st.plotly_chart(fig, use_container_width=True)
 
 with right:
-    st.subheader("Top 5 categories")
+    st.subheader(f"Top 5 categories, week of {week:%d %b}")
     top = data.get_top_categories(week)
-    if top is None:
-        st.info("Placeholder: bar chart once `mart_category_weekly` exists.")
+    if top is None or top.empty:
+        st.info("No category data for this week.")
     else:
-        st.dataframe(top, use_container_width=True, hide_index=True)
+        fig = px.bar(
+            top.sort_values("net_revenue_rank", ascending=False),  # rank 1 at the top
+            x="net_revenue_current",
+            y="category",
+            orientation="h",
+            text="net_revenue_current",
+            labels={"net_revenue_current": "Net revenue ($)", "category": ""},
+        )
+        fig.update_traces(texttemplate="$%{text:,.0f}", textposition="outside", cliponaxis=False)
+        fig.update_layout(height=380, margin=dict(l=0, r=40, t=10, b=0))
+        st.plotly_chart(fig, use_container_width=True)
