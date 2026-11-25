@@ -3519,23 +3519,6 @@ protobuf = ">=6.33.5,<8.0.0"
 grpc = ["grpcio (>=1.59.0,<2.0.0)"]
 
 [[package]]
-name = "graphviz"
-version = "0.21"
-description = "Simple Python interface for Graphviz"
-optional = false
-python-versions = ">=3.9"
-groups = ["main"]
-files = [
-    {file = "graphviz-0.21-py3-none-any.whl", hash = "sha256:54f33de9f4f911d7e84e4191749cac8cc5653f815b06738c54db9a15ab8b1e42"},
-    {file = "graphviz-0.21.tar.gz", hash = "sha256:20743e7183be82aaaa8ad6c93f8893c923bd6658a04c32ee115edb3c8a835f78"},
-]
-
-[package.extras]
-dev = ["Flake8-pyproject", "build", "flake8", "pep8-naming", "tox (>=3)", "twine", "wheel"]
-docs = ["sphinx (>=5,<7)", "sphinx-autodoc-typehints", "sphinx-rtd-theme (>=0.2.5)"]
-test = ["coverage", "pytest (>=7,<8.1)", "pytest-cov", "pytest-mock (>=3)"]
-
-[[package]]
 name = "greenback"
 version = "1.3.0"
 description = "Reenter an async event loop from synchronous code"
@@ -9379,4 +9362,4 @@ type = ["pytest-mypy (>=1.0.1) ; platform_python_implementation != \"PyPy\""]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.12,<3.13"
-content-hash = "1b90e0af8aa85cdd96a4ceeaf222a5816b6d761635e8c6a9f19cb2f5a521998d"
+content-hash = "773a5dd654d2f268f5fd3b2ded491df5bdc75b081f285550f013b872db0c516c"

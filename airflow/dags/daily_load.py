@@ -15,7 +15,7 @@ from config import (
     GCS_BUCKET,
     GCP_PROJECT,
     TABLES,
-    TABLES_JOIN,
+    TABLES_PERM,
 )
 
 from load import enrich_parquet_files
@@ -77,7 +77,7 @@ with DAG(
             autodetect=True,
             create_disposition="CREATE_NEVER",
             write_disposition="WRITE_APPEND"
-            if table not in TABLES_JOIN
+            if table not in TABLES_PERM
             else "WRITE_TRUNCATE",
             project_id=GCP_PROJECT,
             location=BQ_LOCATION,

@@ -5,7 +5,7 @@ import polars as pl
 from airflow.providers.google.cloud.hooks.gcs import GCSHook
 from airflow.sdk import get_current_context
 
-from config import TABLES_JOIN
+from config import TABLES_PERM
 
 
 def enrich_parquet_files(
@@ -42,7 +42,7 @@ def enrich_parquet_files(
 
         df = pl.read_parquet(source_uri, credential_provider=pl.CredentialProviderGCP())
 
-        if table not in TABLES_JOIN:
+        if table not in TABLES_PERM:
             if min_date is not None:
                 df = df.filter(pl.col("created_at") > pl.lit(min_date).str.to_date())
 
@@ -50,9 +50,13 @@ def enrich_parquet_files(
                 df = df.filter(pl.col("created_at") <= pl.lit(max_date).str.to_date())
 
             df = df.with_columns(pl.col("created_at").dt.date().alias("dt"))
-        else:
+        elif table == "distribution_centers":
             df = df.with_columns(
                 pl.lit(ds).str.to_date("%Y-%m-%d").dt.date().alias("ds")
+            )
+        else:
+            df = df.with_columns(
+                pl.lit(ds).str.to_date("%Y-%m-%d").dt.date().alias("dt")
             )
 
         df = df.with_columns(

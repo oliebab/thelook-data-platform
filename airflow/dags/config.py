@@ -13,12 +13,15 @@ DESTINATION_DATASET = os.environ["RAW_DATASET"]
 
 CUTOFF_DATE = pendulum.datetime(2026, 11, 22, tz="UTC")
 
-TABLES_JOIN = [
+TABLES_PERM = [
+    "users",
+    "orders",
+    "order_items",
     "products",
     "distribution_centers",
 ]
 
-TABLES = ["users", "orders", "order_items", "inventory_items", "events", *TABLES_JOIN]
+TABLES = ["inventory_items", "events", *TABLES_PERM]
 
 DEFAULT_ARGS = {
     "depends_on_past": False,
