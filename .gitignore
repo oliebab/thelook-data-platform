@@ -225,7 +225,6 @@ __marimo__/
 # --- project ---
 *.json
 !contracts/*.json
-profiles.yml
 dbt/target/
 dbt/dbt_packages/
 dbt/logs/
