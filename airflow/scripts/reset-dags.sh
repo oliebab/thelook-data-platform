@@ -7,6 +7,7 @@ DAGS=(
     "extract_to_GCS"
     "historical_GCS_to_bigquery"
     "daily_GCS_to_bigquery"
+    "run_dbt"
 )
 
 for DAG in "${DAGS[@]}"; do
