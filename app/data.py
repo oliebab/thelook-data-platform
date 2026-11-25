@@ -1,18 +1,15 @@
 """Data layer for the TheLook Streamlit app.
 
-Every BigQuery query lives here, one function per query, each cached for an hour.
-Pages never talk to BigQuery directly.
+Every BigQuery query lives here, one function per query, each cached for an hour
+so switching pages is instant. Pages never talk to BigQuery directly.
 
-The dataset is read from the APP_DATASET environment variable (default: analytics).
-While developing, point it at your own dbt dataset:
+Configuration (environment variables):
+    APP_DATASET        dataset of the dbt marts (default: analytics)
+    APP_REPORTS_TABLE  LLM review table (default: thelook-dp-2611.reports.llm_business_review)
 
-    APP_DATASET=dbt_gabriel poetry run streamlit run app/Home.py
-
-The review table is read from APP_REPORTS_TABLE
-(default: thelook-dp-2611.reports.llm_business_review).
-
-If a table doesn't exist yet, the function returns None so the page can show
-a placeholder instead of crashing.
+If a table doesn't exist yet, a function returns None: the page shows a clear
+message instead of a traceback. Other BigQuery errors are raised and turned into
+a readable message by ui.load().
 """
 
 import datetime as dt
@@ -26,16 +23,22 @@ from google.cloud import bigquery
 PROJECT = "thelook-dp-2611"
 DATASET = os.getenv("APP_DATASET", "analytics")
 
-# Table names. Change here if the dbt models are named differently.
-KPI_TABLE = f"`{PROJECT}.{DATASET}.mart_kpi_weekly`"
-CATEGORY_TABLE = f"`{PROJECT}.{DATASET}.mart_category_weekly`"
-FUNNEL_TABLE = f"`{PROJECT}.{DATASET}.fct_funnel_daily`"
-CHANNEL_TABLE = f"`{PROJECT}.{DATASET}.mart_channel_weekly`"
-# LLM review table written by the review job (PR #14). Lives in its own dataset.
-REPORTS_TABLE = "`" + os.getenv("APP_REPORTS_TABLE", f"{PROJECT}.reports.llm_business_review") + "`"
+KPI_TABLE_NAME = "mart_kpi_weekly"
+CATEGORY_TABLE_NAME = "mart_category_weekly"
+FUNNEL_TABLE_NAME = "fct_funnel_daily"
+CHANNEL_TABLE_NAME = "mart_channel_weekly"
+REPORTS_TABLE_ID = os.getenv("APP_REPORTS_TABLE", f"{PROJECT}.reports.llm_business_review")
+
+KPI_TABLE = f"`{PROJECT}.{DATASET}.{KPI_TABLE_NAME}`"
+CATEGORY_TABLE = f"`{PROJECT}.{DATASET}.{CATEGORY_TABLE_NAME}`"
+FUNNEL_TABLE = f"`{PROJECT}.{DATASET}.{FUNNEL_TABLE_NAME}`"
+CHANNEL_TABLE = f"`{PROJECT}.{DATASET}.{CHANNEL_TABLE_NAME}`"
+REPORTS_TABLE = f"`{REPORTS_TABLE_ID}`"
 
 # Column holding the week (a DATE, the Monday of the week) in the weekly marts.
 WEEK_COL = "week_start"
+
+CACHE_TTL = 3600  # seconds
 
 
 @st.cache_resource
@@ -64,7 +67,7 @@ def _recent_mondays(n: int = 12) -> list[dt.date]:
     return [last_monday - dt.timedelta(weeks=i) for i in range(n)]
 
 
-@st.cache_data(ttl=3600)
+@st.cache_data(ttl=CACHE_TTL, show_spinner=False)
 def get_weeks() -> list[dt.date]:
     """Weeks available for the selector, most recent first."""
     df = _query(
@@ -75,7 +78,7 @@ def get_weeks() -> list[dt.date]:
     return [pd.Timestamp(w).date() for w in df["week"]]
 
 
-@st.cache_data(ttl=3600)
+@st.cache_data(ttl=CACHE_TTL, show_spinner=False)
 def get_kpis(week: dt.date) -> pd.DataFrame | None:
     """One row of weekly KPIs for the selected week (None if the mart isn't built).
 
@@ -87,9 +90,9 @@ def get_kpis(week: dt.date) -> pd.DataFrame | None:
     )
 
 
-@st.cache_data(ttl=3600)
+@st.cache_data(ttl=CACHE_TTL, show_spinner=False)
 def get_kpi_history(weeks: int = 52) -> pd.DataFrame | None:
-    """Last N weeks of KPIs, oldest first, for the line chart."""
+    """Last N weeks of KPIs, oldest first. week_start is returned as a pandas Timestamp."""
     df = _query(
         f"""
         select *
@@ -99,10 +102,13 @@ def get_kpi_history(weeks: int = 52) -> pd.DataFrame | None:
         """,
         [bigquery.ScalarQueryParameter("n", "INT64", weeks)],
     )
-    return None if df is None else df.sort_values(WEEK_COL)
+    if df is None:
+        return None
+    df[WEEK_COL] = pd.to_datetime(df[WEEK_COL])
+    return df.sort_values(WEEK_COL).reset_index(drop=True)
 
 
-@st.cache_data(ttl=3600)
+@st.cache_data(ttl=CACHE_TTL, show_spinner=False)
 def get_top_categories(week: dt.date, n: int = 5) -> pd.DataFrame | None:
     """Top N categories by net revenue for the selected week (uses the mart's rank)."""
     return _query(
@@ -117,24 +123,28 @@ def get_top_categories(week: dt.date, n: int = 5) -> pd.DataFrame | None:
     )
 
 
-@st.cache_data(ttl=3600)
+@st.cache_data(ttl=CACHE_TTL, show_spinner=False)
 def get_review(week: dt.date) -> pd.DataFrame | None:
-    """Latest LLM review for the selected week that passed the guardrail (a re-run adds a row)."""
+    """Latest LLM review for the selected week.
+
+    A review that passed the guardrail (numbers checked against the KPIs) always wins
+    over one that didn't; among those, the newest one. The page shows a badge from
+    guardrail_passed, and a warning when only an unchecked review exists.
+    """
     return _query(
         f"""
         select *
         from {REPORTS_TABLE}
         where period_type = 'week'
           and period_start = @week
-          and guardrail_passed
-        order by generated_at desc
+        order by guardrail_passed desc, generated_at desc
         limit 1
         """,
         _week_param(week),
     )
 
 
-@st.cache_data(ttl=3600)
+@st.cache_data(ttl=CACHE_TTL, show_spinner=False)
 def get_funnel_daily(week: dt.date) -> pd.DataFrame | None:
     """Daily funnel rows (one per day and traffic source) for the selected week
     and the week before it, so the page can compute week-on-week changes.
@@ -162,7 +172,7 @@ def get_funnel_daily(week: dt.date) -> pd.DataFrame | None:
     )
 
 
-@st.cache_data(ttl=3600)
+@st.cache_data(ttl=CACHE_TTL, show_spinner=False)
 def get_channels(week: dt.date) -> pd.DataFrame | None:
     """One row per traffic source for the selected week, with sessions and
     session conversion (0-100) for this week and the previous one."""

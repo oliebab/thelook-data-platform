@@ -4,14 +4,20 @@ Presents the weekly KPIs, the LLM business review, and the funnel and channels, 
 
 ## Pages
 
+`Home.py` is the entry point: it sets up the page and the Plotly template, shows the
+navigation bar and the sidebar (week selector shared by every page through
+`st.session_state["week"]`), then runs the selected page.
+
 | Page | Reads |
 |---|---|
-| `Home.py` | week selector, shared with every page through `st.session_state["week"]` |
+| `pages/overview.py` | `mart_kpi_weekly`, review headline |
 | `pages/1_KPIs.py` | `mart_kpi_weekly`, `mart_category_weekly` |
-| `pages/2_Review.py` | `reports.llm_business_review` (selected week, guardrail passed) |
+| `pages/2_Review.py` | `reports.llm_business_review` (selected week; passed reviews first) |
 | `pages/3_Funnel_and_channels.py` | `fct_funnel_daily`, `mart_channel_weekly` |
 
-All BigQuery queries live in `data.py`: one function per query, parameterised and cached for an hour.
+- `data.py`: every BigQuery query, one function per query, parameterised and cached for an hour.
+- `ui.py`: shared UI (sidebar, header, Plotly template, KPI cards, friendly error messages).
+- `.streamlit/config.toml`: theme. Streamlit reads it from the folder it is started in, so run it from `app/`.
 
 ## Configuration
 
@@ -34,11 +40,11 @@ docker compose up -d --build streamlit
 The app is published on `127.0.0.1:8501` only: forward port 8501 in VS Code (Ports tab).
 After a prod run, `docker compose restart streamlit` clears the one-hour query cache.
 
-For development, against a dev dataset:
+For development, against a dev dataset (run from `app/` so the theme is applied):
 
 ```bash
-cd ~/code/thelook-data-platform
-APP_DATASET=dbt_olivier poetry run streamlit run app/Home.py --server.port 8502 --server.headless true
+cd ~/code/thelook-data-platform/app
+APP_DATASET=dbt_olivier poetry run streamlit run Home.py --server.port 8502
 ```
 
 Use port 8502 so it doesn't clash with the service on 8501.
