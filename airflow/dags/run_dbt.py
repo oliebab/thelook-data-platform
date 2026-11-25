@@ -3,14 +3,29 @@ from airflow.providers.docker.operators.docker import DockerOperator
 from airflow.providers.standard.sensors.external_task import ExternalTaskSensor
 from docker.types import Mount
 
-from config import CUTOFF_DATE, GCP_KEY_PATH
+from config import (
+    CUTOFF_DATE,
+    DBT_DATASET,
+    HOST_GCP_KEY_PATH,
+    GCP_PROJECT,
+    BQ_LOCATION,
+    DESTINATION_DATASET,
+)
 
 KEY = Mount(
-    source=GCP_KEY_PATH,
+    source=HOST_GCP_KEY_PATH,
     target="/app/keys/gcp-service-account.json",
     type="bind",
     read_only=True,
 )
+
+DBT_ENV = {
+    "DBT_KEYFILE": "/app/keys/gcp-service-account.json",
+    "GCP_PROJECT": GCP_PROJECT,
+    "DBT_DATASET": DBT_DATASET,
+    "BQ_LOCATION": BQ_LOCATION,
+    "RAW_DATASET": DESTINATION_DATASET,
+}
 
 
 def dbt(task_id, command):
@@ -20,6 +35,7 @@ def dbt(task_id, command):
         command=command,
         docker_url="unix://var/run/docker.sock",
         mounts=[KEY],
+        environment=DBT_ENV,
         mount_tmp_dir=False,
         auto_remove="success",
     )
