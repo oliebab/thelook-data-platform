@@ -1,4 +1,5 @@
 import os
+import pendulum
 
 from datetime import timedelta
 
@@ -8,17 +9,19 @@ BQ_LOCATION = os.environ["BQ_LOCATION"]
 SOURCE_PROJECT = os.environ["SOURCE_PROJECT"]
 SOURCE_DATASET = os.environ["SOURCE_DATASET"]
 SOURCE_LOCATION = os.environ["SOURCE_LOCATION"]
-DESTINATION_DATASET = os.environ["DESTINATION_DATASET"]
+DESTINATION_DATASET = os.environ["RAW_DATASET"]
 
-TABLES = [
+CUTOFF_DATE = pendulum.datetime(2026, 11, 22, tz="UTC")
+
+TABLES_PERM = [
     "users",
     "orders",
     "order_items",
     "products",
-    "inventory_items",
-    "events",
     "distribution_centers",
 ]
+
+TABLES = ["inventory_items", "events", *TABLES_PERM]
 
 DEFAULT_ARGS = {
     "depends_on_past": False,
