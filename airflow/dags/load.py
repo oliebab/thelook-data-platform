@@ -49,10 +49,10 @@ def enrich_parquet_files(
             if max_date is not None:
                 df = df.filter(pl.col("created_at") <= pl.lit(max_date).str.to_date())
 
-            df = df.with_columns(pl.col("created_at").dt.date().alias("_dt"))
+            df = df.with_columns(pl.col("created_at").dt.date().alias("dt"))
         else:
             df = df.with_columns(
-                pl.lit(ds).str.to_date("%Y-%m-%d").dt.date().alias("_ds")
+                pl.lit(ds).str.to_date("%Y-%m-%d").dt.date().alias("ds")
             )
 
         df = df.with_columns(
