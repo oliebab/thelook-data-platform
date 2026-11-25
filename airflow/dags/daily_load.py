@@ -25,6 +25,7 @@ with DAG(
     description=("Extract GCS Parquet and load daily data into BigQuery"),
     start_date=CUTOFF_DATE + timedelta(days=1),
     catchup=True,
+    max_active_runs=1,
     schedule="@daily",
     tags=["bigquery", "gcs", "parquet", "raw", "enrich", "daily"],
     default_args=DEFAULT_ARGS,
