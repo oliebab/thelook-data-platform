@@ -72,8 +72,8 @@ services:
       airflow-init:
         condition: service_completed_successfully
     env_file: 
-      - .env.airflow
       - ../.env
+      - .env.airflow
     volumes:
       - ./dags:/app/airflow/dags
       - ./data:/app/airflow/data
