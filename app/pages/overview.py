@@ -33,16 +33,27 @@ else:
 # --- Review headline ----------------------------------------------------------------
 st.subheader("This week in one sentence")
 review = ui.load(data.get_review, week, what="the review")
+has_review = review is not None and not review.empty
+# get_review falls back to a review that failed the numbers check: never put its
+# figures on the landing page.
+passed = has_review and bool(review.iloc[0].get("guardrail_passed"))
 headline = None
-if review is not None and not review.empty:
+if passed:
     md = review.iloc[0].get("output_md") or ""
     for title, body in ui.split_sections(md):
         if ui.section_kind(title) == "headline" and body:
             headline = body
             break
+
 if headline:
     st.info(ui.escape_md(headline), icon=":material/campaign:")
     st.page_link("pages/2_Review.py", label="Read the full review", icon=":material/arrow_forward:")
+elif has_review and not passed:
+    st.warning(
+        "This week's review didn't pass the numbers check, so its headline isn't shown here.",
+        icon=":material/gpp_maybe:",
+    )
+    st.page_link("pages/2_Review.py", label="Open the review anyway", icon=":material/arrow_forward:")
 else:
     st.caption("No review generated for this week yet.")
 
