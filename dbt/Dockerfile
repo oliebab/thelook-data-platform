@@ -1,6 +1,4 @@
-FROM python:3.12-slim as dbt
-
-FROM python:3.12.8-slim as dbt
+FROM python:3.12.8-slim AS dbt
 
 ENV PYTHONUNBUFFERED=1 \
     DBT_PROFILES_DIR=/app/dbt \
