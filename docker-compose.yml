@@ -57,7 +57,8 @@ services:
       - ./airflow/dags:/app/airflow/dags
       - ./airflow/data:/app/airflow/data
       - ./airflow/logs:/app/airflow/logs
-      - ~/.gcp_keys/thelook-gcp-airflow.json:/app/airflow/keys/gcp-service-account.json
+      - ~/.gcp_keys/thelook-gcp-airflow.json:/app/airflow/keys/gcp-service-account.json:ro
+      #- /var/run/docker.sock:/var/run/docker.sock
     tty: true
     stdin_open: true
 
@@ -78,7 +79,8 @@ services:
       - ./airflow/dags:/app/airflow/dags
       - ./airflow/data:/app/airflow/data
       - ./airflow/logs:/app/airflow/logs
-      - ~/.gcp_keys/thelook-gcp-airflow.json:/app/airflow/keys/gcp-service-account.json
+      - ~/.gcp_keys/thelook-gcp-airflow.json:/app/airflow/keys/gcp-service-account.json:ro
+      #- /var/run/docker.sock:/var/run/docker.sock
 
   webserver:
     container_name: airflow_webserver
@@ -106,6 +108,17 @@ services:
       retries: 3
     tty: true
     stdin_open: true
+
+  dbt:
+    container_name: dbt
+    image: thelook-dbt:latest
+    build: 
+      context: ./dbt
+      target: dbt
+    # profiles: ["tools"]
+    volumes:
+      - ./dbt:/app/dbt
+      - ~/.gcp_keys/thelook-gcp-airflow.json:/app/keys/gcp-service-account.json:ro
 
   streamlit:
     container_name: streamlit
