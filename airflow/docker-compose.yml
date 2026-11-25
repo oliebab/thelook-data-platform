@@ -57,7 +57,7 @@ services:
       - ./dags:/app/airflow/dags
       - ./data:/app/airflow/data
       - ./logs:/app/airflow/logs
-      - ~/.gcp_keys/airflow-thelook.json:/app/airflow/keys/gcp-service-account.json
+      - ~/.gcp_keys/thelook-gcp-airflow.json:/app/airflow/keys/gcp-service-account.json
     tty: true
     stdin_open: true
 
@@ -78,7 +78,7 @@ services:
       - ./dags:/app/airflow/dags
       - ./data:/app/airflow/data
       - ./logs:/app/airflow/logs
-      - ~/.gcp_keys/airflow-thelook.json:/app/airflow/keys/gcp-service-account.json
+      - ~/.gcp_keys/thelook-gcp-airflow.json:/app/airflow/keys/gcp-service-account.json
 
   webserver:
     container_name: airflow_webserver

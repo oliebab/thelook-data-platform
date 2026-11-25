@@ -4,7 +4,6 @@ from airflow import DAG
 from airflow.providers.google.cloud.transfers.bigquery_to_gcs import (
     BigQueryToGCSOperator,
 )
-from airflow.providers.standard.operators.empty import EmptyOperator
 
 from config import (
     DEFAULT_ARGS,
@@ -21,7 +20,7 @@ with DAG(
     description="Export of all TheLook tables from BigQuery to GCS as Parquet",
     start_date=datetime(2026, 11, 22),
     catchup=True,
-    schedule="@Daily",
+    schedule="@daily",
     tags=["bigquery", "gcs", "parquet"],
     default_args=DEFAULT_ARGS,
 ) as dag:

@@ -7,8 +7,6 @@ from airflow.providers.google.cloud.transfers.gcs_to_bigquery import (
 from airflow.providers.standard.sensors.external_task import ExternalTaskSensor
 from airflow.providers.standard.operators.python import PythonOperator
 
-import pendulum
-
 from config import (
     BQ_LOCATION,
     CUTOFF_DATE,
@@ -28,7 +26,7 @@ with DAG(
     start_date=CUTOFF_DATE + timedelta(days=1),
     catchup=True,
     schedule="@daily",
-    tags=["bigquery", "gcs", "parquet", "raw", "enrich", "historical"],
+    tags=["bigquery", "gcs", "parquet", "raw", "enrich", "daily"],
     default_args=DEFAULT_ARGS,
 ) as dag:
     for table in TABLES:

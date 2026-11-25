@@ -1,7 +1,7 @@
 import os
 import pendulum
 
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 GCP_PROJECT = os.environ["GCP_PROJECT"]
 GCS_BUCKET = os.environ["GCS_BUCKET"]
@@ -9,7 +9,7 @@ BQ_LOCATION = os.environ["BQ_LOCATION"]
 SOURCE_PROJECT = os.environ["SOURCE_PROJECT"]
 SOURCE_DATASET = os.environ["SOURCE_DATASET"]
 SOURCE_LOCATION = os.environ["SOURCE_LOCATION"]
-DESTINATION_DATASET = os.environ["DESTINATION_DATASET"]
+DESTINATION_DATASET = os.environ["RAW_DATASET"]
 
 CUTOFF_DATE = pendulum.datetime(2026, 11, 22, tz="UTC")
 
