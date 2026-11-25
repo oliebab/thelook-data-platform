@@ -2,9 +2,9 @@ services:
   postgres:
     container_name: airflow_db
     image: postgres:14
-    env_file: .env.postgres
+    env_file: ./airflow/.env.postgres
     volumes:
-      - ./database/:/var/lib/postgresql/data
+      - ./airflow/database/:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -d $$POSTGRES_DB -U $$POSTGRES_USER || exit 1"]
       interval: 15s
@@ -16,26 +16,26 @@ services:
   airflow-init:
     container_name: airflow_init
     build:
-      context: .
+      context: ./airflow
       target: airflow
     command: poetry run scripts/airflow-init.sh
     env_file:
-      - ../.env
-      - .env.airflow
-      - .env.postgres
+      - .env
+      - ./airflow/.env.airflow
+      - ./airflow/.env.postgres
     depends_on:
       postgres:
         condition: service_healthy
     volumes:
-      - ./dags:/app/airflow/dags
-      - ./data:/app/airflow/data
-      - ./logs:/app/airflow/logs
+      - ./airflow/dags:/app/airflow/dags
+      - ./airflow/data:/app/airflow/data
+      - ./airflow/logs:/app/airflow/logs
     restart: "no"
   
   scheduler:
     container_name: airflow_scheduler
     build: 
-      context: .
+      context: ./airflow
       target: airflow
     command: poetry run airflow scheduler
     restart: on-failure
@@ -48,15 +48,15 @@ services:
       timeout: 10s
       retries: 3
     env_file: 
-      - ../.env
-      - .env.airflow
+      - .env
+      - ./airflow/.env.airflow
     environment:
       - AIRFLOW__CORE__EXECUTION_API_SERVER_URL=http://webserver:8080/execution/
       - AIRFLOW__DEBUG__FAIL_FAST=true
     volumes:
-      - ./dags:/app/airflow/dags
-      - ./data:/app/airflow/data
-      - ./logs:/app/airflow/logs
+      - ./airflow/dags:/app/airflow/dags
+      - ./airflow/data:/app/airflow/data
+      - ./airflow/logs:/app/airflow/logs
       - ~/.gcp_keys/thelook-gcp-airflow.json:/app/airflow/keys/gcp-service-account.json
     tty: true
     stdin_open: true
@@ -64,7 +64,7 @@ services:
   dag-processor:
     container_name: airflow_dag_processor
     build:
-      context: .
+      context: ./airflow
       target: airflow
     command: poetry run airflow dag-processor
     restart: on-failure
@@ -72,18 +72,18 @@ services:
       airflow-init:
         condition: service_completed_successfully
     env_file: 
-      - ../.env
-      - .env.airflow
+      - .env
+      - ./airflow/.env.airflow
     volumes:
-      - ./dags:/app/airflow/dags
-      - ./data:/app/airflow/data
-      - ./logs:/app/airflow/logs
+      - ./airflow/dags:/app/airflow/dags
+      - ./airflow/data:/app/airflow/data
+      - ./airflow/logs:/app/airflow/logs
       - ~/.gcp_keys/thelook-gcp-airflow.json:/app/airflow/keys/gcp-service-account.json
 
   webserver:
     container_name: airflow_webserver
     build: 
-      context: .
+      context: ./airflow
       target: airflow
     command: poetry run scripts/start-api.sh
     restart: on-failure
@@ -91,12 +91,12 @@ services:
       airflow-init:
         condition: service_completed_successfully
     env_file: 
-        - path: .env.postgres
-        - path: .env.airflow
+        - path: ./airflow/.env.postgres
+        - path: ./airflow/.env.airflow
     volumes:
-      - ./dags:/app/airflow/dags
-      - ./data:/app/airflow/data
-      - ./logs:/app/airflow/logs
+      - ./airflow/dags:/app/airflow/dags
+      - ./airflow/data:/app/airflow/data
+      - ./airflow/logs:/app/airflow/logs
     ports:
       - "127.0.0.1:8080:8080"
     healthcheck:
@@ -109,7 +109,7 @@ services:
 
   streamlit:
     container_name: streamlit
-    build: ../app
+    build: ./app
     ports:
       - "127.0.0.1:8501:8501"
     restart: unless-stopped
