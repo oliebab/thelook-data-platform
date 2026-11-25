@@ -1,0 +1,25 @@
+# Streamlit settings for the TheLook app.
+# Streamlit reads .streamlit/ from the folder it is started in: run it from app/
+# (the Docker image does, with WORKDIR /app).
+
+[theme]
+base = "light"
+primaryColor = "#2563EB"
+backgroundColor = "#FFFFFF"
+secondaryBackgroundColor = "#F4F6FB"
+textColor = "#1F2937"
+borderColor = "#E5E7EB"
+font = "sans serif"
+
+[theme.sidebar]
+backgroundColor = "#F4F6FB"
+
+[client]
+# Hide the "Deploy" button and developer menu entries.
+toolbarMode = "minimal"
+
+[server]
+headless = true
+
+[browser]
+gatherUsageStats = false
