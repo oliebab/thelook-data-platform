@@ -12,16 +12,20 @@ SOURCE_LOCATION = os.environ["SOURCE_LOCATION"]
 DESTINATION_DATASET = os.environ["RAW_DATASET"]
 
 CUTOFF_DATE = pendulum.datetime(2026, 11, 22, tz="UTC")
+DEMO_END_DATE = pendulum.datetime(2026, 11, 26, tz="UTC")
 
+# Temporary fix for presentation (move all table as permanant)
 TABLES_PERM = [
     "users",
     "orders",
     "order_items",
+    "events",
     "products",
     "distribution_centers",
+    "inventory_items",
 ]
 
-TABLES = ["inventory_items", "events", *TABLES_PERM]
+TABLES = [*TABLES_PERM]
 
 DEFAULT_ARGS = {
     "depends_on_past": False,
