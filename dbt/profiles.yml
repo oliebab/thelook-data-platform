@@ -2,8 +2,7 @@ thelook:
   outputs:
     prod:
       type: bigquery
-      method: service-account
-      keyfile: "{{ env_var('DBT_KEYFILE', '/app/keys/gcp-service-account.json') }}"
+      method: oauth
       project: "{{ env_var('GCP_PROJECT', 'thelook-dp-2611') }}"
       dataset: "{{ env_var('DBT_DATASET', 'analytics') }}"
       location: "{{ env_var('BQ_LOCATION', 'US') }}"
