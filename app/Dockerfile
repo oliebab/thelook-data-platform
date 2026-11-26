@@ -22,10 +22,6 @@ RUN pip install \
 # The build context is app/, so this copies Home.py, data.py and pages/.
 COPY . .
 
-# Run as a non-root user.
-# RUN useradd --create-home appuser
-# USER appuser
-
 EXPOSE 8501
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
