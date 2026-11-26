@@ -20,14 +20,16 @@ import streamlit as st
 from google.api_core.exceptions import NotFound
 from google.cloud import bigquery
 
-PROJECT = "thelook-dp-2611"
+PROJECT = os.getenv("GCP_PROJECT", "thelook-dp-2611")
 DATASET = os.getenv("APP_DATASET", "analytics")
 
 KPI_TABLE_NAME = "mart_kpi_weekly"
 CATEGORY_TABLE_NAME = "mart_category_weekly"
 FUNNEL_TABLE_NAME = "fct_funnel_daily"
 CHANNEL_TABLE_NAME = "mart_channel_weekly"
-REPORTS_TABLE_ID = os.getenv("APP_REPORTS_TABLE", f"{PROJECT}.reports.llm_business_review")
+REPORTS_TABLE_ID = os.getenv(
+    "APP_REPORTS_TABLE", f"{PROJECT}.reports.llm_business_review"
+)
 
 KPI_TABLE = f"`{PROJECT}.{DATASET}.{KPI_TABLE_NAME}`"
 CATEGORY_TABLE = f"`{PROJECT}.{DATASET}.{CATEGORY_TABLE_NAME}`"

@@ -226,9 +226,6 @@ __marimo__/
 *.json
 !contracts/*.json
 profiles.yml
-dbt/target/
-dbt/dbt_packages/
-dbt/logs/
 logs/
 
 example_review.md
@@ -239,3 +236,9 @@ airflow/.env*
 airflow/database
 airflow/data
 airflow/logs
+
+# DBT
+dbt/target/
+dbt/dbt_packages/
+dbt/logs/
+dbt/.user.yml

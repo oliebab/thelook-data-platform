@@ -23,8 +23,8 @@ RUN pip install \
 COPY . .
 
 # Run as a non-root user.
-RUN useradd --create-home appuser
-USER appuser
+# RUN useradd --create-home appuser
+# USER appuser
 
 EXPOSE 8501
 
