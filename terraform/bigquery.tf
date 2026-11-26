@@ -2,7 +2,7 @@ locals {
   raw_dataset = "raw_thelook"
   dbt_dataset = "analytics"
   llm_dataset = "reports"
-  bq_location = "EU"
+  bq_location = "US"
 }
 
 # Define datsets
