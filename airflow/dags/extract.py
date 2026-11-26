@@ -7,6 +7,7 @@ from airflow.providers.google.cloud.transfers.bigquery_to_gcs import (
 
 from config import (
     DEFAULT_ARGS,
+    DEMO_END_DATE,
     GCP_PROJECT,
     GCS_BUCKET,
     SOURCE_DATASET,
@@ -19,6 +20,7 @@ with DAG(
     dag_id="extract_to_GCS",
     description="Export of all TheLook tables from BigQuery to GCS as Parquet",
     start_date=datetime(2026, 11, 22),
+    end_date=DEMO_END_DATE,
     catchup=True,
     schedule="@daily",
     tags=["bigquery", "gcs", "parquet"],
