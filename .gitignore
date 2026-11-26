@@ -241,3 +241,8 @@ airflow/logs
 
 # DBT
 dbt/.user.yml
+
+# Terraform
+.terraform/
+*.tfstate*
+terraform.tfvars
