@@ -4,13 +4,14 @@ from airflow.providers.standard.sensors.external_task import ExternalTaskSensor
 from docker.types import Mount
 
 from config import (
+    BQ_LOCATION,
     CUTOFF_DATE,
     DBT_DATASET,
+    DEFAULT_ARGS,
     DEMO_END_DATE,
-    HOST_GCP_KEY_PATH,
-    GCP_PROJECT,
-    BQ_LOCATION,
     DESTINATION_DATASET,
+    GCP_PROJECT,
+    HOST_GCP_KEY_PATH,
 )
 
 KEY = Mount(
@@ -48,6 +49,8 @@ with DAG(
     start_date=CUTOFF_DATE,
     end_date=DEMO_END_DATE,
     catchup=False,
+    tags=["bigquery", "dbt", "daily", "analytics"],
+    default_args=DEFAULT_ARGS,
 ):
     wait_for_load_task = ExternalTaskSensor(
         task_id="wait_for_load",
