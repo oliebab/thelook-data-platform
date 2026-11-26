@@ -1,43 +1,35 @@
+import os
+import shlex
+
 from airflow.sdk import DAG
-from airflow.providers.docker.operators.docker import DockerOperator
+from airflow.providers.google.cloud.operators.cloud_run import (
+    CloudRunExecuteJobOperator,
+)
 from airflow.providers.standard.sensors.external_task import ExternalTaskSensor
-from docker.types import Mount
 
 from config import (
     CUTOFF_DATE,
-    DBT_DATASET,
-    HOST_GCP_KEY_PATH,
-    GCP_PROJECT,
-    BQ_LOCATION,
-    DESTINATION_DATASET,
+    DEFAULT_ARGS,
 )
 
-KEY = Mount(
-    source=HOST_GCP_KEY_PATH,
-    target="/app/keys/gcp-service-account.json",
-    type="bind",
-    read_only=True,
-)
 
-DBT_ENV = {
-    "DBT_KEYFILE": "/app/keys/gcp-service-account.json",
-    "GCP_PROJECT": GCP_PROJECT,
-    "DBT_DATASET": DBT_DATASET,
-    "BQ_LOCATION": BQ_LOCATION,
-    "RAW_DATASET": DESTINATION_DATASET,
-}
+def dbt_task(task_id, command):
+    args = shlex.split(command) if isinstance(command, str) else list(command)
+    if args and args[0] == "dbt":
+        args = args[1:]
 
-
-def dbt(task_id, command):
-    return DockerOperator(
+    return CloudRunExecuteJobOperator(
         task_id=task_id,
-        image="thelook-dbt:latest",
-        command=command,
-        docker_url="unix://var/run/docker.sock",
-        mounts=[KEY],
-        environment=DBT_ENV,
-        mount_tmp_dir=False,
-        auto_remove="success",
+        project_id=os.environ["GCP_PROJECT"],
+        region=os.environ["DBT_REGION"],
+        job_name=os.environ["DBT_JOB"],
+        overrides={
+            "container_overrides": [
+                {
+                    "args": args,
+                }
+            ]
+        },
     )
 
 
@@ -51,9 +43,11 @@ with DAG("run_dbt", schedule="@daily", start_date=CUTOFF_DATE, catchup=False):
         timeout=6000,
         poke_interval=15,
         mode="reschedule",
+        tags=["bigquery", "dbt", "daily", "analytics"],
+        default_args=DEFAULT_ARGS,
     )
 
-    freshness = dbt("dbt_source_freshness", "source freshness --target prod")
-    build = dbt("dbt_build", "build --target prod")
+    freshness = dbt_task("dbt_source_freshness", "source freshness --target prod")
+    build = dbt_task("dbt_build", "build --target prod")
 
     wait_for_load_task >> freshness >> build

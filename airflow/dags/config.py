@@ -3,8 +3,6 @@ import pendulum
 
 from datetime import timedelta
 
-HOST_GCP_KEY_PATH = os.environ["GCP_KEY_PATH"]
-
 GCP_PROJECT = os.environ["GCP_PROJECT"]
 GCS_BUCKET = os.environ["GCS_BUCKET"]
 BQ_LOCATION = os.environ["BQ_LOCATION"]
