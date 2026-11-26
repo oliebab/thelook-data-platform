@@ -6,6 +6,7 @@ from docker.types import Mount
 from config import (
     CUTOFF_DATE,
     DBT_DATASET,
+    DEMO_END_DATE,
     HOST_GCP_KEY_PATH,
     GCP_PROJECT,
     BQ_LOCATION,
@@ -41,7 +42,13 @@ def dbt(task_id, command):
     )
 
 
-with DAG("run_dbt", schedule="@daily", start_date=CUTOFF_DATE, catchup=False):
+with DAG(
+    "run_dbt",
+    schedule="@daily",
+    start_date=CUTOFF_DATE,
+    end_date=DEMO_END_DATE,
+    catchup=False,
+):
     wait_for_load_task = ExternalTaskSensor(
         task_id="wait_for_load",
         external_dag_id="daily_GCS_to_bigquery",
