@@ -1,5 +1,3 @@
-FROM python:3.12-slim as dbt
-
 FROM python:3.12.8-slim as dbt
 
 ENV PYTHONUNBUFFERED=1 \
